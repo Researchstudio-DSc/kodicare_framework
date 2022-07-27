@@ -43,11 +43,11 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
             = input_article_map[self.MAP_KEY__CORD19__METADATA][self.MAP_KEY__CORD19__TITLE]
         normalized_article_map[self.MAP_KEY__METADATA][self.MAP_KEY__DOC_TYPE] = self.DOC_TYPE_SCIENTIFIC_PAPER
         normalized_article_map[self.MAP_KEY__METADATA][self.MAP_KEY__AUTHORS] \
-            = self.construct_authors_list(input_article_map, normalized_article_map)
+            = self.construct_authors_list(input_article_map)
         normalized_article_map[self.MAP_KEY__METADATA][self.MAP_KEY__PUBLISHER] = ""
         normalized_article_map[self.MAP_KEY__METADATA][self.MAP_KEY__YEAR] = ""
 
-    def construct_authors_list(self, input_article_map, normalized_article_map):
+    def construct_authors_list(self, input_article_map):
         normalized_authors = []
         for author in input_article_map[self.MAP_KEY__CORD19__METADATA][self.MAP_KEY__CORD19__AUTHORS]:
             normalized_author = {
