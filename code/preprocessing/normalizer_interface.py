@@ -1,6 +1,7 @@
 class NormalizerInterface:
     MAP_KEY__DOC_ID = "doc_id"
     MAP_KEY__UID = "uid"
+    MAP_KEY__METADATA = "metadata"
     MAP_KEY__TITLE = "title"
     MAP_KEY__DOC_TYPE = "doc_type"
     MAP_KEY__AUTHORS = "authors"
@@ -12,6 +13,9 @@ class NormalizerInterface:
     MAP_KEY__INSTITUTION = "institution"
     MAP_KEY__EMAIL = "email"
     MAP_KEY__PUBLISHER = "publisher"
+    MAP_KEY__YEAR = "year"
+
+    DOC_TYPE_SCIENTIFIC_PAPER = "scientific paper"
 
     def normalize_input_doc(self, input_path, output_path):
         """
