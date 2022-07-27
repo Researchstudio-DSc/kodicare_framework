@@ -18,6 +18,15 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
     MAP_KEY__CORD19__REGION = "region"
     MAP_KEY__CORD19__INSTITUTION = "institution"
     MAP_KEY__CORD19__EMAIL = "email"
+    MAP_KEY__CORD19__ABSTRACT = "abstract"
+    MAP_KEY__CORD19__SECTION = "section"
+    MAP_KEY__CORD19__TEXT = "text"
+    MAP_KEY__CORD19__BODY_TEXT = "body_text"
+    MAP_KEY__CORD19__CITE_SPANS = "cite_spans"
+    MAP_KEY__CORD19__REF_SPANS = "ref_spans"
+    MAP_KEY__CORD19__START = "start"
+    MAP_KEY__CORD19__END = "end"
+    MAP_KEY__CORD19__REF_ID = "ref_id"
 
     def normalize_input_doc(self, input_path, output_path):
         input_article_map = io_util.read_json(input_path)
@@ -27,7 +36,7 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
         # 2- read and set the metadata
         self.set_metadata(input_article_map, normalized_article_map)
         # 3- iterate through tht paragraph text and set the paragraph info - consider special normalization here and cleaning
-
+        self.set_paragraphs_list(input_article_map, normalized_article_map)
         # write to json
         io_util.write_json(output_path, normalized_article_map)
 
@@ -63,3 +72,52 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
             }
             normalized_authors.append(normalized_author)
         return normalized_authors
+
+    def set_paragraphs_list(self, input_article_map, normalized_article_map):
+        normalized_paragraphs = []
+
+        # add the info of the abstract paragraphs
+        for par in input_article_map[self.MAP_KEY__CORD19__ABSTRACT]:
+            normalized_paragraphs.append(self.get_paragraph_info(par))
+
+        # add the body paragraphs info
+        for par in input_article_map[self.MAP_KEY__CORD19__BODY_TEXT]:
+            normalized_paragraphs.append(self.get_paragraph_info(par))
+
+        normalized_article_map[self.MAP_KEY__PARAGRAPHS] = normalized_paragraphs
+
+    def get_paragraph_info(self, original_paragraph_map):
+        normalized_abstract_info = {
+            self.MAP_KEY__TEXT: original_paragraph_map[self.MAP_KEY__CORD19__TEXT],
+            self.MAP_KEY__SECTION: {
+                self.MAP_KEY__TEXT: original_paragraph_map[self.MAP_KEY__CORD19__SECTION],
+                self.MAP_KEY__SECTION_DISCOURSE: ""
+            },
+            self.MAP_KEY__CITATIONS:
+                self.construct_citation_list(original_paragraph_map[self.MAP_KEY__CORD19__CITE_SPANS]),
+            self.MAP_KEY__ENTITIES:
+                self.construct_entities_list(original_paragraph_map[self.MAP_KEY__CORD19__REF_SPANS])
+        }
+        return normalized_abstract_info
+
+    def construct_citation_list(self, original_citation_list):
+        normalized_citation_list = []
+        for citation in original_citation_list:
+            normalized_citation_list.append({
+                self.MAP_KEY__START: citation[self.MAP_KEY__CORD19__START],
+                self.MAP_KEY__END: citation[self.MAP_KEY__CORD19__END],
+                self.MAP_KEY__TEXT: citation[self.MAP_KEY__CORD19__TEXT],
+                self.MAP_KEY__REF_ID: citation[self.MAP_KEY__CORD19__REF_ID],
+            })
+        return normalized_citation_list
+
+    def construct_entities_list(self, original_entities_list):
+        normalized_entities_list = []
+        for entity in original_entities_list:
+            normalized_entities_list.append({
+                self.MAP_KEY__START: entity[self.MAP_KEY__CORD19__START],
+                self.MAP_KEY__END: entity[self.MAP_KEY__CORD19__END],
+                self.MAP_KEY__TEXT: entity[self.MAP_KEY__CORD19__TEXT],
+                self.MAP_KEY__REF_ID: entity[self.MAP_KEY__CORD19__REF_ID],
+            })
+        return normalized_entities_list

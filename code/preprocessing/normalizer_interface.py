@@ -14,6 +14,15 @@ class NormalizerInterface:
     MAP_KEY__EMAIL = "email"
     MAP_KEY__PUBLISHER = "publisher"
     MAP_KEY__YEAR = "year"
+    MAP_KEY__PARAGRAPHS = "paragraphs"
+    MAP_KEY__CITATIONS = "citations"
+    MAP_KEY__START = "start"
+    MAP_KEY__END = "end"
+    MAP_KEY__ENTITIES = "entities"
+    MAP_KEY__REF_ID = "ref_id"
+    MAP_KEY__SECTION = "section"
+    MAP_KEY__SECTION_DISCOURSE = "discourse_section"
+    MAP_KEY__TEXT = "text"
 
     DOC_TYPE_SCIENTIFIC_PAPER = "scientific paper"
 
