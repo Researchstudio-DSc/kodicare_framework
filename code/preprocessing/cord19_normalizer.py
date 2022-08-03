@@ -64,9 +64,12 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
                 self.MAP_KEY__MIDDLE_NAME: ' '.join(author[self.MAP_KEY__CORD19__MIDDLE_NAME]),
                 self.MAP_KEY__LAST_NAME: author[self.MAP_KEY__CORD19__LAST_NAME],
                 self.MAP_KEY__AFFILIATION: {
-                    self.MAP_KEY__INSTITUTION: author[self.MAP_KEY__CORD19__AFFILIATION][
-                        self.MAP_KEY__CORD19__INSTITUTION],
-                    self.MAP_KEY__ADDRESS: ' '.join(str(x) for x in author[self.MAP_KEY__CORD19__AFFILIATION][
+                    self.MAP_KEY__INSTITUTION: ""
+                    if self.MAP_KEY__CORD19__INSTITUTION not in author[self.MAP_KEY__CORD19__AFFILIATION]
+                    else author[self.MAP_KEY__CORD19__AFFILIATION][self.MAP_KEY__CORD19__INSTITUTION],
+                    self.MAP_KEY__ADDRESS: ""
+                    if self.MAP_KEY__CORD19__LOCATION not in author[self.MAP_KEY__CORD19__AFFILIATION]
+                    else ' '.join(str(x) for x in author[self.MAP_KEY__CORD19__AFFILIATION][
                         self.MAP_KEY__CORD19__LOCATION].values())},
                 self.MAP_KEY__EMAIL: author[self.MAP_KEY__CORD19__EMAIL],
             }
