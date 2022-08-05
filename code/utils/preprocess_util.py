@@ -31,3 +31,7 @@ def spacy_tokenizer(sentence, parser, stopwords, punctuations):
     mytokens = [word for word in mytokens if word not in stopwords and word not in punctuations]
     mytokens = " ".join([i for i in mytokens])
     return mytokens
+
+
+def vectorize_text(text, vectorizer):
+    return vectorizer.fit_transform(text)

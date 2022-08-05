@@ -9,6 +9,8 @@ from spacy.lang.en.stop_words import \
     STOP_WORDS  # spacy and scispacy model usually cause conflict so the package version requirements must be set
 import en_core_sci_lg
 import string
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import PCA
 
 MAP_KEY__UID = "uid"
 MAP_KEY__ABSTRACT = "abstract"
@@ -89,6 +91,16 @@ def process_body_text(df):
     tqdm.pandas()
     df[MAP_KEY__PROCESSED_TEXT] = df["body_text"].progress_apply(preprocess_util.spacy_tokenizer,
                                                                  args=(parser, stopwords, punctuations))
+
+
+def vectorize_processed_text(df):
+    print("Vectorizing processed text ... ")
+    # TODO: should be changed to be configured from a configuration class/file
+    vectorizer = TfidfVectorizer(max_features=2 ** 12)
+    text = df['processed_text'].values
+    X = preprocess_util.vectorize_text(text, vectorizer)
+    pca = PCA(n_components=0.95, random_state=42)
+    return pca.fit_transform(X.toarray())
 
 
 def read_input_file(input_file_path):
@@ -181,4 +193,5 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         print(df.head())
         clean_df(df)
         process_body_text(df)
+        vectors = vectorize_processed_text(df)
         return
