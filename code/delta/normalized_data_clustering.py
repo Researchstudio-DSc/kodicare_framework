@@ -5,6 +5,10 @@ import pandas as pd
 from tqdm import tqdm
 from code.utils import preprocess_util
 from pprint import pprint
+from spacy.lang.en.stop_words import \
+    STOP_WORDS  # spacy and scispacy model usually cause conflict so the package version requirements must be set
+import en_core_sci_lg
+import string
 
 MAP_KEY__UID = "uid"
 MAP_KEY__ABSTRACT = "abstract"
@@ -15,6 +19,13 @@ MAP_KEY__ABSTRACT_WORD_COUNT = "abstract_word_count"
 MAP_KEY__BODY_WORD_COUNT = "body_word_count"
 MAP_KEY__BODY_UNIQUE_WORD_COUNT = "body_unique_word_count"
 MAP_KEY__LANGUAGE = "language"
+MAP_KEY__PROCESSED_TEXT = "processed_text"
+
+CUSTOM_STOP_WORDS = [
+    'doi', 'preprint', 'copyright', 'peer', 'reviewed', 'org', 'https', 'et', 'al', 'author', 'figure',
+    'rights', 'reserved', 'permission', 'used', 'using', 'biorxiv', 'medrxiv', 'license', 'fig', 'fig.',
+    'al.', 'Elsevier', 'PMC', 'CZI', 'www'
+]
 
 
 def read_files_to_df(input_path, files):
@@ -61,6 +72,23 @@ def clean_df(df):
     print("Removing non English articles ..")
     df = df[df[MAP_KEY__LANGUAGE] == 'en']
     df.info()
+
+
+def process_body_text(df):
+    print("processing body text ...")
+    punctuations = string.punctuation
+
+    stopwords = list(STOP_WORDS)
+    for w in CUSTOM_STOP_WORDS:
+        if w not in stopwords:
+            stopwords.append(w)
+
+    parser = en_core_sci_lg.load(disable=["tagger", "ner"])
+    parser.max_length = 7000000
+
+    tqdm.pandas()
+    df[MAP_KEY__PROCESSED_TEXT] = df["body_text"].progress_apply(preprocess_util.spacy_tokenizer,
+                                                                 args=(parser, stopwords, punctuations))
 
 
 def read_input_file(input_file_path):
@@ -152,4 +180,5 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         add_text_fields_count(df)
         print(df.head())
         clean_df(df)
+        process_body_text(df)
         return

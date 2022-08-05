@@ -23,3 +23,11 @@ def detect_text_language(text):
             lang = ""
             pass
     return lang
+
+
+def spacy_tokenizer(sentence, parser, stopwords, punctuations):
+    mytokens = parser(sentence)
+    mytokens = [word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in mytokens]
+    mytokens = [word for word in mytokens if word not in stopwords and word not in punctuations]
+    mytokens = " ".join([i for i in mytokens])
+    return mytokens
