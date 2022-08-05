@@ -2,6 +2,9 @@ from code.delta import clustering_interface
 from code.utils import io_util
 from code.preprocessing import normalizer_interface
 import pandas as pd
+from tqdm import tqdm
+from code.utils import preprocess_util
+from pprint import pprint
 
 MAP_KEY__UID = "uid"
 MAP_KEY__ABSTRACT = "abstract"
@@ -11,6 +14,7 @@ MAP_KEY__ABSTRACT_SUMMARY = "abstract_summary"
 MAP_KEY__ABSTRACT_WORD_COUNT = "abstract_word_count"
 MAP_KEY__BODY_WORD_COUNT = "body_word_count"
 MAP_KEY__BODY_UNIQUE_WORD_COUNT = "body_unique_word_count"
+MAP_KEY__LANGUAGE = "language"
 
 
 def read_files_to_df(input_path, files):
@@ -40,6 +44,23 @@ def add_text_fields_count(df):
     count_word_count_for_text_field(df, MAP_KEY__ABSTRACT, MAP_KEY__ABSTRACT_WORD_COUNT)
     count_word_count_for_text_field(df, MAP_KEY__BODY_TEXT, MAP_KEY__BODY_WORD_COUNT)
     count_word_count_for_text_field(df, MAP_KEY__BODY_TEXT, MAP_KEY__BODY_UNIQUE_WORD_COUNT, unique=True)
+
+
+def clean_df(df):
+    print("Removing duplicates ...")
+    df.drop_duplicates([MAP_KEY__ABSTRACT, MAP_KEY__BODY_TEXT], inplace=True)
+    df.info()
+
+    print("Removing entries with empty values")
+    df.dropna(inplace=True)
+    df.info()
+
+    print("Detecting languages ...")
+    languages = detect_available_languages(df)
+    df['language'] = languages
+    print("Removing non English articles ..")
+    df = df[df[MAP_KEY__LANGUAGE] == 'en']
+    df.info()
 
 
 def read_input_file(input_file_path):
@@ -100,6 +121,28 @@ def count_word_count_for_text_field(df, text_field_key, count_key, unique=False)
         df[count_key] = df[text_field_key].apply(lambda x: len(set(x.strip().split())))
 
 
+def detect_available_languages(df):
+    # hold label - language
+    languages = []
+
+    # go through each text
+    for ii in tqdm(range(0, len(df))):
+        # split by space into list, take the first x intex, join with space
+        body_text = df.iloc[ii][MAP_KEY__BODY_TEXT].split(" ")
+        lang = preprocess_util.detect_text_language(df.iloc[ii][MAP_KEY__BODY_TEXT].split(" "))
+        if lang == "":
+            lang = preprocess_util.detect_text_language(df.iloc[ii][MAP_KEY__ABSTRACT].split(" "))
+        languages.append(lang)
+
+    languages_dict = {}
+    for lang in set(languages):
+        languages_dict[lang] = languages.count(lang)
+
+    print("Total: {}\n".format(len(languages)))
+    pprint(languages_dict)
+    return languages
+
+
 class NormalizedDataClustering(clustering_interface.ClusteringInterface):
 
     def build_clusters(self, input_path, output_path):
@@ -108,4 +151,5 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         print(df.head())
         add_text_fields_count(df)
         print(df.head())
+        clean_df(df)
         return
