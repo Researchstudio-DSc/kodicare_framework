@@ -11,6 +11,9 @@ import en_core_sci_lg
 import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn import metrics
+from scipy.spatial.distance import cdist
 
 MAP_KEY__UID = "uid"
 MAP_KEY__ABSTRACT = "abstract"
@@ -98,9 +101,22 @@ def vectorize_processed_text(df):
     # TODO: should be changed to be configured from a configuration class/file
     vectorizer = TfidfVectorizer(max_features=2 ** 12)
     text = df['processed_text'].values
-    X = preprocess_util.vectorize_text(text, vectorizer)
+    vectors = preprocess_util.vectorize_text(text, vectorizer)
+    return vectors
+
+
+def reduce_vectors(vectors):
+    print("Reduce vectors using PCA")
     pca = PCA(n_components=0.95, random_state=42)
-    return pca.fit_transform(X.toarray())
+    return pca.fit_transform(vectors.toarray())
+
+
+def generate_clusters(vectors, df, k=20):
+    print("Generate K-means clusters ...")
+    # TODO: should we add some configuration file to set the number of clusters
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    y_pred = kmeans.fit_predict(vectors)
+    df['y'] = y_pred
 
 
 def read_input_file(input_file_path):
@@ -194,4 +210,6 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         clean_df(df)
         process_body_text(df)
         vectors = vectorize_processed_text(df)
+        reduced_vectors = reduce_vectors(vectors)
+
         return
