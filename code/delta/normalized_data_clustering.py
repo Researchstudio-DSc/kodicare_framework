@@ -1,19 +1,23 @@
-from code.delta import clustering_interface
-from code.utils import io_util
-from code.preprocessing import normalizer_interface
-import pandas as pd
-from tqdm import tqdm
-from code.utils import preprocess_util
+import pickle
+import string
 from pprint import pprint
+
+import en_core_sci_lg
+import pandas as pd
+import seaborn as sns
+from matplotlib import pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.manifold import TSNE
 from spacy.lang.en.stop_words import \
     STOP_WORDS  # spacy and scispacy model usually cause conflict so the package version requirements must be set
-import en_core_sci_lg
-import string
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn import metrics
-from scipy.spatial.distance import cdist
+from tqdm import tqdm
+
+from code.delta import clustering_interface
+from code.preprocessing import normalizer_interface
+from code.utils import io_util
+from code.utils import preprocess_util
 
 MAP_KEY__UID = "uid"
 MAP_KEY__ABSTRACT = "abstract"
@@ -25,6 +29,7 @@ MAP_KEY__BODY_WORD_COUNT = "body_word_count"
 MAP_KEY__BODY_UNIQUE_WORD_COUNT = "body_unique_word_count"
 MAP_KEY__LANGUAGE = "language"
 MAP_KEY__PROCESSED_TEXT = "processed_text"
+MAP_KEY__CLUSTER_LABEL = "cluster_label"
 
 CUSTOM_STOP_WORDS = [
     'doi', 'preprint', 'copyright', 'peer', 'reviewed', 'org', 'https', 'et', 'al', 'author', 'figure',
@@ -105,10 +110,9 @@ def vectorize_processed_text(df):
     return vectors
 
 
-def reduce_vectors(vectors):
-    print("Reduce vectors using PCA")
-    pca = PCA(n_components=0.95, random_state=42)
-    return pca.fit_transform(vectors.toarray())
+def reduce_vectors(vectors, method):
+    print("Reduce vectors ...")
+    return method.fit_transform(vectors.toarray())
 
 
 def generate_clusters(vectors, df, k=20):
@@ -116,7 +120,37 @@ def generate_clusters(vectors, df, k=20):
     # TODO: should we add some configuration file to set the number of clusters
     kmeans = KMeans(n_clusters=k, random_state=42)
     y_pred = kmeans.fit_predict(vectors)
-    df['y'] = y_pred
+    df[MAP_KEY__CLUSTER_LABEL] = y_pred
+
+
+def plot_clusters(vectors, clusters_labels, title, output_path):
+    # sns settings
+    sns.set(rc={'figure.figsize': (15, 15)})
+
+    # colors
+    palette = sns.hls_palette(20, l=.4, s=.9)
+
+    # plot
+    sns.scatterplot(vectors[:, 0], vectors[:, 1], hue=clusters_labels, legend='full', palette=palette)
+    plt.title(title)
+    plt.savefig(output_path)
+    plt.show()
+
+
+def save_final_output(reduced_vectors, cluster_labels, df, output_dir):
+    print("Save the final output to file ....")
+
+    save_df_to_file(df, io_util.join(output_dir, "df_final.pkl"))
+
+    # save the final t-SNE
+    pickle.dump(reduced_vectors, open(io_util.join(output_dir, "X_embedded.pkl"), "wb"))
+
+    # save the labels generate with k-means(20)
+    pickle.dump(cluster_labels, open(io_util.join(output_dir, "y_pred.pkl"), "wb"))
+
+
+def save_df_to_file(df, output_path):
+    pickle.dump(df, open(output_path, "wb"))
 
 
 def read_input_file(input_file_path):
@@ -202,6 +236,9 @@ def detect_available_languages(df):
 class NormalizedDataClustering(clustering_interface.ClusteringInterface):
 
     def build_clusters(self, input_path, output_path):
+        if not io_util.path_exits(io_util.join(output_path, 'df_progress')):
+            io_util.mkdir(io_util.join(output_path, 'df_progress'))
+
         normalized_docs = [file for file in io_util.list_files_in_dir(input_path) if file.endswith('.json')]
         df = read_files_to_df(input_path, normalized_docs)
         print(df.head())
@@ -209,7 +246,19 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         print(df.head())
         clean_df(df)
         process_body_text(df)
-        vectors = vectorize_processed_text(df)
-        reduced_vectors = reduce_vectors(vectors)
+        save_df_to_file(df, io_util.join(output_path, 'df_progress/df_processed.pkl'))
 
-        return
+        vectors = vectorize_processed_text(df)
+        reduced_vectors_pca = reduce_vectors(vectors, PCA(n_components=0.95, random_state=42))
+        generate_clusters(reduced_vectors_pca, df, k=20)
+        reduced_vectors_tsne = reduce_vectors(vectors, TSNE(verbose=1, perplexity=100, random_state=42))
+
+        if not io_util.path_exits(io_util.join(output_path, 'plots')):
+            io_util.mkdir(io_util.join(output_path, 'plots'))
+
+        plot_clusters(reduced_vectors_tsne, df[MAP_KEY__CLUSTER_LABEL], 't-SNE with Kmeans Labels',
+                      io_util.join(output_path, 'plots/improved_cluster_tsne.png'))
+
+        if not io_util.path_exits(io_util.join(output_path, 'plot_data')):
+            io_util.mkdir(io_util.join(output_path, 'plot_data'))
+        save_final_output(reduced_vectors_tsne, df[MAP_KEY__CLUSTER_LABEL], df, io_util.join(output_path, 'plot_data'))
