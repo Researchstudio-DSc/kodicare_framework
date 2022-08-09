@@ -1,4 +1,3 @@
-import pickle
 import string
 from pprint import pprint
 
@@ -143,14 +142,14 @@ def save_final_output(reduced_vectors, cluster_labels, df, output_dir):
     save_df_to_file(df, io_util.join(output_dir, "df_final.pkl"))
 
     # save the final t-SNE
-    pickle.dump(reduced_vectors, open(io_util.join(output_dir, "X_embedded.pkl"), "wb"))
+    io_util.write_pickle(reduced_vectors, io_util.join(output_dir, "X_embedded.pkl"))
 
     # save the labels generate with k-means(20)
-    pickle.dump(cluster_labels, open(io_util.join(output_dir, "y_pred.pkl"), "wb"))
+    io_util.write_pickle(cluster_labels, io_util.join(output_dir, "y_pred.pkl"))
 
 
 def save_df_to_file(df, output_path):
-    pickle.dump(df, open(output_path, "wb"))
+    io_util.write_pickle(df, output_path)
 
 
 def read_input_file(input_file_path):
