@@ -23,6 +23,15 @@ def get_doc_id_text_vector_map(df, vectors, processed_text_name, doc_id_name):
     return doc_id_text_vector_map
 
 
+def get_clusters_documents_map(df, clusters_label, doc_id_label):
+    clusters = {}
+    for index, row in df.iterrows():
+        if row[clusters_label] not in clusters:
+            clusters[row[clusters_label]] = []
+        clusters[row[clusters_label]].append(row[doc_id_label])
+    return clusters
+
+
 class NormalizedDocumentDeltaCalculation(delta_calculation_interface.DocumentDeltaCalculationInterface):
     def __init__(self, vectorizer_model, processed_text_name, similarity_method):
         self.vectorizer_model = vectorizer_model
@@ -36,3 +45,5 @@ class NormalizedDocumentDeltaCalculation(delta_calculation_interface.DocumentDel
 
         # TODO change uid to be variable
         doc_id_text_vector_map = get_doc_id_text_vector_map(df, vectors, self.processed_text_name, 'uid')
+
+        clusters = get_clusters_documents_map(df, 'cluster_label', 'uid')
