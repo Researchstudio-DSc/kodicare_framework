@@ -1,16 +1,11 @@
 import string
 from pprint import pprint
 
-import en_core_sci_lg
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
-from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.manifold import TSNE
-from spacy.lang.en.stop_words import \
-    STOP_WORDS  # spacy and scispacy model usually cause conflict so the package version requirements must be set
 from tqdm import tqdm
 
 from code.delta import clustering_interface
@@ -83,27 +78,17 @@ def clean_df(df):
     df.info()
 
 
-def process_body_text(df):
+def process_body_text(df, stopwords, parser):
     print("processing body text ...")
     punctuations = string.punctuation
-
-    stopwords = list(STOP_WORDS)
-    for w in CUSTOM_STOP_WORDS:
-        if w not in stopwords:
-            stopwords.append(w)
-
-    parser = en_core_sci_lg.load(disable=["tagger", "ner"])
-    parser.max_length = 7000000
 
     tqdm.pandas()
     df[MAP_KEY__PROCESSED_TEXT] = df["body_text"].progress_apply(preprocess_util.spacy_tokenizer,
                                                                  args=(parser, stopwords, punctuations))
 
 
-def vectorize_processed_text(df):
+def vectorize_processed_text(df, vectorizer):
     print("Vectorizing processed text ... ")
-    # TODO: should be changed to be configured from a configuration class/file
-    vectorizer = TfidfVectorizer(max_features=2 ** 12)
     text = df['processed_text'].values
     vectors = preprocess_util.vectorize_text(text, vectorizer)
     return vectors
@@ -114,11 +99,9 @@ def reduce_vectors(vectors, method):
     return method.fit_transform(vectors.toarray())
 
 
-def generate_clusters(vectors, df, k=20):
+def generate_clusters(vectors, df, clustering_model):
     print("Generate K-means clusters ...")
-    # TODO: should we add some configuration file to set the number of clusters
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    y_pred = kmeans.fit_predict(vectors)
+    y_pred = clustering_model.fit_predict(vectors)
     df[MAP_KEY__CLUSTER_LABEL] = y_pred
 
 
@@ -234,7 +217,16 @@ def detect_available_languages(df):
 
 class NormalizedDataClustering(clustering_interface.ClusteringInterface):
 
+    def __init__(self, language_model_parser, custom_stopwords, text_vectorizer_model, clustering_model):
+        self.language_model_parser = language_model_parser
+        self.custom_stopwords = custom_stopwords
+        self.text_vectorizer_model = text_vectorizer_model
+        self.clustering_model = clustering_model
+
     def build_clusters(self, input_path, output_path):
+        if not io_util.path_exits(output_path):
+            io_util.mkdir(output_path)
+
         if not io_util.path_exits(io_util.join(output_path, 'df_progress')):
             io_util.mkdir(io_util.join(output_path, 'df_progress'))
 
@@ -244,12 +236,12 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         add_text_fields_count(df)
         print(df.head())
         clean_df(df)
-        process_body_text(df)
+        process_body_text(df, self.custom_stopwords, self.language_model_parser)
         save_df_to_file(df, io_util.join(output_path, 'df_progress/df_processed.pkl'))
 
-        vectors = vectorize_processed_text(df)
+        vectors = vectorize_processed_text(df, self.text_vectorizer_model)
         reduced_vectors_pca = reduce_vectors(vectors, PCA(n_components=0.95, random_state=42))
-        generate_clusters(reduced_vectors_pca, df, k=20)
+        generate_clusters(reduced_vectors_pca, df, self.clustering_model)
         reduced_vectors_tsne = reduce_vectors(vectors, TSNE(verbose=1, perplexity=100, random_state=42))
 
         if not io_util.path_exits(io_util.join(output_path, 'plots')):
