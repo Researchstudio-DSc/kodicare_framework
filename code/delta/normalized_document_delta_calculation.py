@@ -1,6 +1,7 @@
 from code.delta import delta_calculation_interface
 from code.utils import io_util
 from code.utils import preprocess_util
+from code.utils import metrics_utils
 
 MAP_KEY__EMBEDDING = "embedding"
 
@@ -13,6 +14,7 @@ def vectorize_documents(df, vectorizer_model, processed_text_name):
 
 
 def get_doc_id_text_vector_map(df, vectors, processed_text_name, doc_id_name):
+    print("getting vectors map")
     doc_ids = df[doc_id_name].values
     processed_text = df[processed_text_name].values
     doc_id_text_vector_map = {}
@@ -32,6 +34,27 @@ def get_clusters_documents_map(df, clusters_label, doc_id_label):
     return clusters
 
 
+def calculate_distance_between_docs_pairs(clusters, doc_id_text_vector_map, similarity_method):
+    print("Calculate distance between docs .. ")
+    clusters_similarity_map = []
+    for cluster_key in clusters:
+        similarity_pairs = []
+        for i in range(len(clusters[cluster_key]) - 1):
+            doc_1 = doc_id_text_vector_map[clusters[cluster_key][i]][MAP_KEY__EMBEDDING]
+            doc_2 = doc_id_text_vector_map[clusters[cluster_key][i + 1]][MAP_KEY__EMBEDDING]
+            similarity_score = metrics_utils.calculate_similarity_between_vectors(similarity_method, doc_1, doc_2)
+            similarity_pairs.append({
+                'doc_id_1': clusters[cluster_key][i],
+                'doc_id_2': clusters[cluster_key][i + 1],
+                'similarity_score': similarity_score
+            })
+        clusters_similarity_map.append({
+            'cluster_id': cluster_key,
+            'similarity_pairs': similarity_pairs
+        })
+    return clusters_similarity_map
+
+
 class NormalizedDocumentDeltaCalculation(delta_calculation_interface.DocumentDeltaCalculationInterface):
     def __init__(self, vectorizer_model, processed_text_name, similarity_method):
         self.vectorizer_model = vectorizer_model
@@ -47,3 +70,8 @@ class NormalizedDocumentDeltaCalculation(delta_calculation_interface.DocumentDel
         doc_id_text_vector_map = get_doc_id_text_vector_map(df, vectors, self.processed_text_name, 'uid')
 
         clusters = get_clusters_documents_map(df, 'cluster_label', 'uid')
+
+        doc_similarity_pairs = calculate_distance_between_docs_pairs(clusters, doc_id_text_vector_map,
+                                                                     self.similarity_method)
+
+        io_util.write_json(output_path, doc_similarity_pairs)
