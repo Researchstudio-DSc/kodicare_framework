@@ -5,13 +5,13 @@ import json
 import requests
 
 # simple query template
-def build_query(query, size):
+def build_bool_query(query, size):
     data = {
         "from" : 0, 
         "size" : size,
         "query": {
             "bool": {
-                "must": {
+                "should": {
                     "match": {
                         "text": query
                     }
@@ -22,9 +22,25 @@ def build_query(query, size):
     return data
 
 
+# simple query template
+def build_multimatch_query(query, fields, size):
+    data = {
+        "from" : 0, 
+        "size" : size,
+        "query": {
+            "multi_match" : {
+                "query": query,
+                "type": "cross_fields",
+                "fields": fields
+            }
+        }
+    }
+    return data
+
+
 class Index:
     
-    def __init__(self, index_name, host="localhost:9200", es=None, ic=None, query_builder=build_query):
+    def __init__(self, index_name, host="localhost:9200", es=None, ic=None, query_builder=build_multimatch_query):
         self.index_name = index_name
         self.host = host
         self.es = es if es != None else Elasticsearch(hosts=[host])
@@ -89,15 +105,15 @@ class Index:
                     print('A document failed:', info)
     
 
-    def rank(self, queries: list, retrieval_size=100):
+    def rank(self, queries: list, retrieval_size: int=100):
         """
         Rank multiple queries simultaneously
         return rankings for each query
         """
         data_json = ""
-        for query in queries:
+        for query, fields in queries:
             q_header = {}
-            query_data = self.query_builder(query, retrieval_size)
+            query_data = self.query_builder(query, fields=fields, size=retrieval_size)
             data_json += json.dumps(q_header) + "\n"
             data_json += json.dumps(query_data) + "\n"
         headers = {

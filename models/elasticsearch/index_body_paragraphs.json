@@ -12,12 +12,19 @@
         "properties": {
             "uid": { "type": "keyword"  },
             "doc_id": { "type": "keyword"  },
+            "paragraph_id": { "type": "keyword"  },
+            "paragraph_number": { "type": "keyword"  },
             "title": {
                 "type": "text",
                 "analyzer": "standard",
                 "similarity": "the_sim"
             },
-            "abstract": {
+            "paragraph_text": {
+                "type": "text",
+                "analyzer": "standard",
+                "similarity": "the_sim"
+            },
+            "section": {
                 "type": "text",
                 "analyzer": "standard",
                 "similarity": "the_sim"
