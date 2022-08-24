@@ -13,17 +13,6 @@ from code.preprocessing import normalizer_interface
 from code.utils import io_util
 from code.utils import preprocess_util
 
-MAP_KEY__UID = "uid"
-MAP_KEY__ABSTRACT = "abstract"
-MAP_KEY__BODY_TEXT = "body_text"
-MAP_KEY__TITLE = "title"
-MAP_KEY__ABSTRACT_SUMMARY = "abstract_summary"
-MAP_KEY__ABSTRACT_WORD_COUNT = "abstract_word_count"
-MAP_KEY__BODY_WORD_COUNT = "body_word_count"
-MAP_KEY__BODY_UNIQUE_WORD_COUNT = "body_unique_word_count"
-MAP_KEY__LANGUAGE = "language"
-MAP_KEY__PROCESSED_TEXT = "processed_text"
-MAP_KEY__CLUSTER_LABEL = "cluster_label"
 
 CUSTOM_STOP_WORDS = [
     'doi', 'preprint', 'copyright', 'peer', 'reviewed', 'org', 'https', 'et', 'al', 'author', 'figure',
@@ -33,8 +22,9 @@ CUSTOM_STOP_WORDS = [
 
 
 def read_files_to_df(input_path, files):
-    dict_ = {MAP_KEY__UID: [], MAP_KEY__ABSTRACT: [], MAP_KEY__BODY_TEXT: [], MAP_KEY__TITLE: [],
-             MAP_KEY__ABSTRACT_SUMMARY: []}
+    dict_ = {clustering_interface.MAP_KEY__UID: [], clustering_interface.MAP_KEY__ABSTRACT: [],
+             clustering_interface.MAP_KEY__BODY_TEXT: [], clustering_interface.MAP_KEY__TITLE: [],
+             clustering_interface.MAP_KEY__ABSTRACT_SUMMARY: []}
     for idx, entry in enumerate(files):
         if idx % (len(files) // 10) == 0:
             print(f'Processing index: {idx} of {len(files)}')
@@ -44,26 +34,31 @@ def read_files_to_df(input_path, files):
         except Exception as e:
             continue  # invalid paper format, skip
 
-        dict_[MAP_KEY__ABSTRACT].append(content[MAP_KEY__ABSTRACT])
-        dict_[MAP_KEY__UID].append(content[MAP_KEY__UID])
-        dict_[MAP_KEY__BODY_TEXT].append(content[MAP_KEY__BODY_TEXT])
-        dict_[MAP_KEY__TITLE].append(content[MAP_KEY__TITLE])
-        dict_[MAP_KEY__ABSTRACT_SUMMARY].append(construct_abstract_summary(content[MAP_KEY__ABSTRACT]))
+        dict_[clustering_interface.MAP_KEY__ABSTRACT].append(content[clustering_interface.MAP_KEY__ABSTRACT])
+        dict_[clustering_interface.MAP_KEY__UID].append(content[clustering_interface.MAP_KEY__UID])
+        dict_[clustering_interface.MAP_KEY__BODY_TEXT].append(content[clustering_interface.MAP_KEY__BODY_TEXT])
+        dict_[clustering_interface.MAP_KEY__TITLE].append(content[clustering_interface.MAP_KEY__TITLE])
+        dict_[clustering_interface.MAP_KEY__ABSTRACT_SUMMARY].append(
+            construct_abstract_summary(content[clustering_interface.MAP_KEY__ABSTRACT]))
 
-    df = pd.DataFrame(dict_, columns=[MAP_KEY__UID, MAP_KEY__ABSTRACT, MAP_KEY__BODY_TEXT, MAP_KEY__TITLE,
-                                      MAP_KEY__ABSTRACT_SUMMARY])
+    df = pd.DataFrame(dict_, columns=[clustering_interface.MAP_KEY__UID, clustering_interface.MAP_KEY__ABSTRACT,
+                                      clustering_interface.MAP_KEY__BODY_TEXT, clustering_interface.MAP_KEY__TITLE,
+                                      clustering_interface.MAP_KEY__ABSTRACT_SUMMARY])
     return df
 
 
 def add_text_fields_count(df):
-    count_word_count_for_text_field(df, MAP_KEY__ABSTRACT, MAP_KEY__ABSTRACT_WORD_COUNT)
-    count_word_count_for_text_field(df, MAP_KEY__BODY_TEXT, MAP_KEY__BODY_WORD_COUNT)
-    count_word_count_for_text_field(df, MAP_KEY__BODY_TEXT, MAP_KEY__BODY_UNIQUE_WORD_COUNT, unique=True)
+    count_word_count_for_text_field(df, clustering_interface.MAP_KEY__ABSTRACT,
+                                    clustering_interface.MAP_KEY__ABSTRACT_WORD_COUNT)
+    count_word_count_for_text_field(df, clustering_interface.MAP_KEY__BODY_TEXT,
+                                    clustering_interface.MAP_KEY__BODY_WORD_COUNT)
+    count_word_count_for_text_field(df, clustering_interface.MAP_KEY__BODY_TEXT,
+                                    clustering_interface.MAP_KEY__BODY_UNIQUE_WORD_COUNT, unique=True)
 
 
 def clean_df(df):
     print("Removing duplicates ...")
-    df.drop_duplicates([MAP_KEY__ABSTRACT, MAP_KEY__BODY_TEXT], inplace=True)
+    df.drop_duplicates([clustering_interface.MAP_KEY__ABSTRACT, clustering_interface.MAP_KEY__BODY_TEXT], inplace=True)
     df.info()
 
     print("Removing entries with empty values")
@@ -74,7 +69,7 @@ def clean_df(df):
     languages = detect_available_languages(df)
     df['language'] = languages
     print("Removing non English articles ..")
-    df = df[df[MAP_KEY__LANGUAGE] == 'en']
+    df = df[df[clustering_interface.MAP_KEY__LANGUAGE] == 'en']
     df.info()
 
 
@@ -83,8 +78,9 @@ def process_body_text(df, stopwords, parser):
     punctuations = string.punctuation
 
     tqdm.pandas()
-    df[MAP_KEY__PROCESSED_TEXT] = df["body_text"].progress_apply(preprocess_util.spacy_tokenizer,
-                                                                 args=(parser, stopwords, punctuations))
+    df[clustering_interface.MAP_KEY__PROCESSED_TEXT] = df["body_text"].progress_apply(preprocess_util.spacy_tokenizer,
+                                                                                      args=(
+                                                                                      parser, stopwords, punctuations))
 
 
 def vectorize_processed_text(df, vectorizer):
@@ -102,7 +98,7 @@ def reduce_vectors(vectors, method):
 def generate_clusters(vectors, df, clustering_model):
     print("Generate K-means clusters ...")
     y_pred = clustering_model.fit_predict(vectors)
-    df[MAP_KEY__CLUSTER_LABEL] = y_pred
+    df[clustering_interface.MAP_KEY__CLUSTER_LABEL] = y_pred
 
 
 def plot_clusters(vectors, clusters_labels, title, output_path):
@@ -138,8 +134,8 @@ def save_df_to_file(df, output_path):
 def read_input_file(input_file_path):
     input_content = io_util.read_json(input_file_path)
     doc_data_map = {
-        MAP_KEY__UID: input_content[normalizer_interface.NormalizerInterface.MAP_KEY__UID],
-        MAP_KEY__TITLE: input_content[normalizer_interface.NormalizerInterface.MAP_KEY__METADATA]
+        clustering_interface.MAP_KEY__UID: input_content[normalizer_interface.NormalizerInterface.MAP_KEY__UID],
+        clustering_interface.MAP_KEY__TITLE: input_content[normalizer_interface.NormalizerInterface.MAP_KEY__METADATA]
         [normalizer_interface.NormalizerInterface.MAP_KEY__TITLE]
     }
     abstract_pars = []
@@ -150,8 +146,8 @@ def read_input_file(input_file_path):
             abstract_pars.append(par[normalizer_interface.NormalizerInterface.MAP_KEY__TEXT])
         else:
             body_pars.append(par[normalizer_interface.NormalizerInterface.MAP_KEY__TEXT])
-    doc_data_map[MAP_KEY__ABSTRACT] = '\n'.join(abstract_pars)
-    doc_data_map[MAP_KEY__BODY_TEXT] = '\n'.join(body_pars)
+    doc_data_map[clustering_interface.MAP_KEY__ABSTRACT] = '\n'.join(abstract_pars)
+    doc_data_map[clustering_interface.MAP_KEY__BODY_TEXT] = '\n'.join(body_pars)
     return doc_data_map
 
 
@@ -200,10 +196,10 @@ def detect_available_languages(df):
     # go through each text
     for ii in tqdm(range(0, len(df))):
         # split by space into list, take the first x intex, join with space
-        body_text = df.iloc[ii][MAP_KEY__BODY_TEXT].split(" ")
-        lang = preprocess_util.detect_text_language(df.iloc[ii][MAP_KEY__BODY_TEXT].split(" "))
+        body_text = df.iloc[ii][clustering_interface.MAP_KEY__BODY_TEXT].split(" ")
+        lang = preprocess_util.detect_text_language(df.iloc[ii][clustering_interface.MAP_KEY__BODY_TEXT].split(" "))
         if lang == "":
-            lang = preprocess_util.detect_text_language(df.iloc[ii][MAP_KEY__ABSTRACT].split(" "))
+            lang = preprocess_util.detect_text_language(df.iloc[ii][clustering_interface.MAP_KEY__ABSTRACT].split(" "))
         languages.append(lang)
 
     languages_dict = {}
@@ -247,9 +243,10 @@ class NormalizedDataClustering(clustering_interface.ClusteringInterface):
         if not io_util.path_exits(io_util.join(output_path, 'plots')):
             io_util.mkdir(io_util.join(output_path, 'plots'))
 
-        plot_clusters(reduced_vectors_tsne, df[MAP_KEY__CLUSTER_LABEL], 't-SNE with Kmeans Labels',
+        plot_clusters(reduced_vectors_tsne, df[clustering_interface.MAP_KEY__CLUSTER_LABEL], 't-SNE with Kmeans Labels',
                       io_util.join(output_path, 'plots/improved_cluster_tsne.png'))
 
         if not io_util.path_exits(io_util.join(output_path, 'plot_data')):
             io_util.mkdir(io_util.join(output_path, 'plot_data'))
-        save_final_output(reduced_vectors_tsne, df[MAP_KEY__CLUSTER_LABEL], df, io_util.join(output_path, 'plot_data'))
+        save_final_output(reduced_vectors_tsne, df[clustering_interface.MAP_KEY__CLUSTER_LABEL], df,
+                          io_util.join(output_path, 'plot_data'))
