@@ -4,6 +4,12 @@ from code.delta import delta_calculation_interface
 import sys
 import math
 
+MAP_KEY__QUERY = "query"
+MAP_KEY__QUERY_ID = "query_id"
+MAP_KEY__RELEVANT_DOCS = "relevant_docs"
+MAP_KEY__DOC_ID = "doc_id"
+MAP_KEY__SCORE = "score"
+
 
 def init_doc_cluster_id_map(doc_clusters_path):
     df = io_util.read_pickle(doc_clusters_path)
@@ -26,15 +32,13 @@ def init_doc_pairs_similarity_map(doc_pairs_similarity_path):
 
 
 class DeltaRerankingInterface:
-    def __init__(self, base_retrieval_output_path, doc_clusters_path, doc_pairs_similarity_path):
+    def __init__(self, doc_clusters_path, doc_pairs_similarity_path):
         """
         init class of the reranking
-        :param base_retrieval_output_path: the json file of the results from the execution of the base retrieval method
         :param doc_clusters_path: json path of documents clusters
         """
         self.doc_cluster_id_map = init_doc_cluster_id_map(doc_clusters_path)
         self.doc_pairs_similarity_map = init_doc_pairs_similarity_map(doc_pairs_similarity_path)
-        self.base_retrieval_output_path = base_retrieval_output_path
 
     def qprp_rerank(self, relevant_docs, relevant_docs_scores_map):
         """
@@ -67,3 +71,13 @@ class DeltaRerankingInterface:
 
             relevant_docs_set.remove(next_doc_uid)
             reranked_docs.append(next_doc_uid)
+        return reranked_docs
+
+    def rerank_retrieval_output(self, base_retrieval_output_path, reranked_retrieval_output_path):
+        """
+        function to rerank the retrieval output for the list of queries
+        :param base_retrieval_output_path: the json file of the results from the execution of the base retrieval method
+        :param reranked_retrieval_output_path: the output path to save the reranked output
+        :return:
+        """
+        pass
