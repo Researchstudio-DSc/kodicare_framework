@@ -65,10 +65,10 @@ class DeltaRerankingInterface:
 
         relevant_docs_set = set(relevant_docs[1:])
         reranked_docs = []
-        reranked_docs[0] = relevant_docs[0]
+        reranked_docs.append(relevant_docs[0])
         while len(relevant_docs_set) != 0:
             next_doc_uid = ""
-            next_doc_score = -sys.maxint - 1
+            next_doc_score = -1000
 
             for doc in relevant_docs_set:
                 current_score = relevant_docs_scores_map[doc]

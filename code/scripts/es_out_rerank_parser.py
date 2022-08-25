@@ -17,7 +17,7 @@ def main(args):
         for doc in query_result[es_index.MAP_KEY__RELEVANT_DOCS]:
             # print(doc)
             relevant_docs.append({
-                delta_reranking_interface.MAP_KEY__DOC_ID: doc[es_index.MAP_KEY__INFO][es_index.MAP_KEY__DOC_ID],
+                delta_reranking_interface.MAP_KEY__DOC_ID: doc[es_index.MAP_KEY__INFO][es_index.MAP_KEY__UID],
                 delta_reranking_interface.MAP_KEY__SCORE: doc[es_index.MAP_KEY__SCORE],
             })
         rerank_formate.append({

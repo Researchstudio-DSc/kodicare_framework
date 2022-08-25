@@ -7,6 +7,7 @@ MAP_KEY__QUERY_TEXT = "query_text"
 MAP_KEY__QUERY_ID = "query_id"
 MAP_KEY__RELEVANT_DOCS = "relevant_docs"
 MAP_KEY__DOC_ID = "doc_id"
+MAP_KEY__UID = "uid"
 MAP_KEY__SCORE = "score"
 MAP_KEY__INFO = "info"
 

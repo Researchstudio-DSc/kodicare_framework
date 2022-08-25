@@ -31,6 +31,8 @@ class DeltaRerankingClustersFirst(delta_reranking_interface.DeltaRerankingInterf
         cluster_relevant_docs_map = {}
         relevant_docs_scores_map = {}
         for rel_doc in query_info_map[delta_reranking_interface.MAP_KEY__RELEVANT_DOCS]:
+            if rel_doc[delta_reranking_interface.MAP_KEY__DOC_ID] not in self.doc_cluster_id_map:
+                continue
             cluster_id = self.doc_cluster_id_map[rel_doc[delta_reranking_interface.MAP_KEY__DOC_ID]]
             if cluster_id not in ordered_clusters:
                 ordered_clusters.append(cluster_id)
