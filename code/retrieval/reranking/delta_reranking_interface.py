@@ -31,6 +31,21 @@ def init_doc_pairs_similarity_map(doc_pairs_similarity_path):
     return doc_pairs_similarity_map
 
 
+def add_reranked_query_result(query, query_id, reranked_docs, relevant_docs_scores_map, reranked_retrieval_result):
+    relevant_docs_map = []
+    for doc in reranked_docs:
+        relevant_docs_map.append({
+            MAP_KEY__DOC_ID: doc,
+            MAP_KEY__SCORE: relevant_docs_scores_map[doc]
+        })
+
+    reranked_retrieval_result.append({
+        MAP_KEY__QUERY: query,
+        MAP_KEY__QUERY_ID: query_id,
+        MAP_KEY__RELEVANT_DOCS: relevant_docs_map
+    })
+
+
 class DeltaRerankingInterface:
     def __init__(self, doc_clusters_path, doc_pairs_similarity_path):
         """
