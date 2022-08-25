@@ -1,0 +1,27 @@
+{
+    "settings": {
+        "similarity": {
+            "the_sim": {
+                "type": "BM25",
+                "k1": 1.2,
+                "b": 0.75
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "uid": { "type": "keyword"  },
+            "doc_id": { "type": "keyword"  },
+            "title": {
+                "type": "text",
+                "analyzer": "standard",
+                "similarity": "the_sim"
+            },
+            "abstract": {
+                "type": "text",
+                "analyzer": "standard",
+                "similarity": "the_sim"
+            }
+        }
+    }
+}
