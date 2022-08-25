@@ -1,0 +1,34 @@
+{
+    "settings": {
+        "similarity": {
+            "the_sim": {
+                "type": "BM25",
+                "k1": 1.2,
+                "b": 0.75
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "uid": { "type": "keyword"  },
+            "doc_id": { "type": "keyword"  },
+            "paragraph_id": { "type": "keyword"  },
+            "paragraph_number": { "type": "keyword"  },
+            "title": {
+                "type": "text",
+                "analyzer": "standard",
+                "similarity": "the_sim"
+            },
+            "paragraph_text": {
+                "type": "text",
+                "analyzer": "standard",
+                "similarity": "the_sim"
+            },
+            "section": {
+                "type": "text",
+                "analyzer": "standard",
+                "similarity": "the_sim"
+            }
+        }
+    }
+}
