@@ -31,12 +31,6 @@ class BatchReader:
 
 
 class CORD19Reader(BatchReader):
-    FIELDS = [
-        "uid",
-        "doc_id",
-        "title",
-        "abstract"
-    ]
 
     def __init__(self, batch_size: int = 64) -> None:
         super().__init__(batch_size)
@@ -50,19 +44,25 @@ class CORD19Reader(BatchReader):
             "title": document_data["metadata"]["title"],
             "abstract": abstract
         }
-        return [document_obj]
+        return [(document_obj["uid"],document_obj)]
+    
+
+    def build(self, query, size):
+        data = {
+            "from" : 0, 
+            "size" : size,
+            "query": {
+                "multi_match" : {
+                    "query": query,
+                    "type": "cross_fields",
+                    "fields": ["title", "abstract"]
+                }
+            }
+        }
+        return data
 
 
 class CORD19ParagraphReader(BatchReader):
-    FIELDS = [
-        "uid",
-        "doc_id",
-        "paragraph_id",
-        "paragraph_number",
-        "title",
-        "section",
-        "paragraph_text"
-    ]
 
     def __init__(self, batch_size: int = 64) -> None:
         super().__init__(batch_size)
@@ -80,6 +80,21 @@ class CORD19ParagraphReader(BatchReader):
                 "section": p["section"]["text"],
                 "paragraph_text": p["text"]
             }
-            paragraph_objs.append(document_obj)
+            paragraph_objs.append((document_obj["paragraph_id"], document_obj))
         return paragraph_objs
+    
+
+    def build(self, query, size):
+        data = {
+            "from" : 0, 
+            "size" : size,
+            "query": {
+                "multi_match" : {
+                    "query": query,
+                    "type": "cross_fields",
+                    "fields": ["title", "section", "paragraph_text"]
+                }
+            }
+        }
+        return data
         

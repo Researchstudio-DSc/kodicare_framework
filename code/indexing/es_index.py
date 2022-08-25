@@ -1,6 +1,5 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-from elasticsearch.helpers import parallel_bulk
 import json
 import requests
 
@@ -40,12 +39,11 @@ def build_multimatch_query(query, fields, size):
 
 class Index:
     
-    def __init__(self, index_name, host="localhost:9200", es=None, ic=None, query_builder=build_multimatch_query):
+    def __init__(self, index_name, host="localhost:9200", es=None, ic=None):
         self.index_name = index_name
         self.host = host
         self.es = es if es != None else Elasticsearch(hosts=[host])
         self.ic = ic if ic != None else IndicesClient(self.es)
-        self.query_builder = query_builder
     
     
     def create_index(self, index_body):
@@ -93,27 +91,33 @@ class Index:
                 '_index': self.index_name,
                 '_source': passage_body
             }
-        
     
     def index_docs(self, doc_iterator):
         """
-        Index documents via iterator using the bulk helper
+        Index documents via iterator using the bulk function
         """
-        for doc_data in doc_iterator:
-            for success, info in parallel_bulk(client=self.es, actions=self.action_gen(doc_data=doc_data)):
-                if not success:
-                    print('A document failed:', info)
+        for batch_data in doc_iterator:
+            data_json = ""
+            for doc_id, doc_source in batch_data:
+                action_and_meta_data = { "index" : { "_index" : self.index_name, "_id" : doc_id} }
+                data_json += json.dumps(action_and_meta_data) + "\n"
+                data_json += json.dumps(doc_source) + "\n"
+            headers = {
+                'Content-type': 'application/json',
+            }
+            r = requests.post(f"http://{self.host}/_bulk", data=data_json, headers=headers)
+            resp = r.json()
     
 
-    def rank(self, queries: list, retrieval_size: int=100):
+    def rank(self, queries: list, size=100, query_builder=None):
         """
         Rank multiple queries simultaneously
         return rankings for each query
         """
         data_json = ""
-        for query, fields in queries:
+        for query in queries:
             q_header = {}
-            query_data = self.query_builder(query, fields=fields, size=retrieval_size)
+            query_data = query_builder.build(query, size=size)
             data_json += json.dumps(q_header) + "\n"
             data_json += json.dumps(query_data) + "\n"
         headers = {
