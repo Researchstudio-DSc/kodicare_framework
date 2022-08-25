@@ -6,6 +6,9 @@ import requests
 MAP_KEY__QUERY_TEXT = "query_text"
 MAP_KEY__QUERY_ID = "query_id"
 MAP_KEY__RELEVANT_DOCS = "relevant_docs"
+MAP_KEY__DOC_ID = "doc_id"
+MAP_KEY__SCORE = "score"
+MAP_KEY__INFO = "info"
 
 
 # simple query template
@@ -133,6 +136,6 @@ class Index:
                 MAP_KEY__QUERY_TEXT: query_info[MAP_KEY__QUERY_TEXT],
                 MAP_KEY__QUERY_ID: query_info[MAP_KEY__QUERY_ID],
                 MAP_KEY__RELEVANT_DOCS:
-                    [{"score": hit['_score'], "info": hit['_source']} for hit in ranking["hits"]["hits"]]
+                    [{MAP_KEY__SCORE: hit['_score'], MAP_KEY__INFO: hit['_source']} for hit in ranking["hits"]["hits"]]
             })
         return ranking_data
