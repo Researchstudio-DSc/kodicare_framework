@@ -129,5 +129,5 @@ class Index:
         for ranking in responses:
             if "hits" not in ranking:
                 print(ranking)
-            ranking_data.append([hit['_source'] for hit in ranking["hits"]["hits"]])
+            ranking_data.append([hit for hit in ranking["hits"]["hits"]])
         return ranking_data
