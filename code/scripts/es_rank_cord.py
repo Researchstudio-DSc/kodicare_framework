@@ -1,8 +1,11 @@
 import argparse
-import json
+
+from lxml import etree
+
+from code.indexing import es_index
 from code.indexing.es_index import Index
 from code.indexing.readers import CORD19Reader, CORD19ParagraphReader
-from lxml import etree
+from code.utils import io_util
 
 
 def main(args):
@@ -12,7 +15,10 @@ def main(args):
     for topic in topics:
         query = topic[0]
         assert query.tag == "query"
-        queries.append(query.text)
+        queries.append({
+            es_index.MAP_KEY__QUERY_ID: topic.attrib['number'],
+            es_index.MAP_KEY__QUERY_TEXT: query.text
+        })
 
     if args.index_type == "paragraphs":
         reader = CORD19ParagraphReader(batch_size=16384)
@@ -22,8 +28,9 @@ def main(args):
 
     print(f"Ranking {len(queries)} queries...")
     ranking_data = index.rank(queries=queries, size=100, query_builder=reader)
-    print(ranking_data)
+    io_util.write_json(args.output_file, ranking_data)
 
+    print(ranking_data)
 
 
 if __name__ == '__main__':
@@ -35,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('index_name', help='The name of the index')
     parser.add_argument('index_type', help='A choice between "paragraphs" or "doc"')
     parser.add_argument('query_file', help='File containing the CORD queries')
+    parser.add_argument('output_file', help='Output path of the results in json.')
 
     args = parser.parse_args()
     main(args)
