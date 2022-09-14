@@ -23,9 +23,11 @@ def write_to_qrels(uid_metadata_map, run_name, run_result_path, qrels_out_path):
     for query in run_data:
         query_id = query['query_id']
         rank = 0
+        added_relevant_docs = []
         for doc in query['relevant_docs']:
-            if doc['doc_id'] not in uid_metadata_map:
+            if doc['doc_id'] not in uid_metadata_map or doc['doc_id'] in added_relevant_docs:
                 continue
+            added_relevant_docs.append(doc['doc_id'])
             cord_id = uid_metadata_map[doc['doc_id']]['cord_uid']
             print(f"{query_id} Q0 {cord_id} {rank} {doc['score']:.4f} {run_name}")
             qrels_list.append(f"{query_id} Q0 {cord_id} {rank} {doc['score']:.4f} {run_name}")
