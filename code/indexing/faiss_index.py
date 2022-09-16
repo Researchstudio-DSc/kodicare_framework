@@ -1,6 +1,7 @@
 import faiss
 import pickle
 import numpy as np
+import os
 
 class Index:
 
@@ -23,15 +24,15 @@ class Index:
         self.index = []
     
 
-    def serialize(self, file: str):
-        faiss.write_index(self.faiss_index, file+".faiss")
-        with open(file+".pickle", "wb") as fp:
+    def serialize(self, folder: str):
+        faiss.write_index(self.faiss_index, os.path.join(folder, self.index_name+".faiss"))
+        with open(os.path.join(folder, self.index_name+".pickle"), "wb") as fp:
             pickle.dump(self.index, fp)
     
 
-    def deserialize(self, file: str):
-        self.faiss_index = faiss.read_index(file+".faiss")
-        with open(file+".pickle", "rb") as fp:
+    def deserialize(self, folder: str):
+        self.faiss_index = faiss.read_index(os.path.join(folder, self.index_name+".faiss"))
+        with open(os.path.join(folder, self.index_name+".pickle"), "rb") as fp:
             self.index = pickle.load(fp)
     
 

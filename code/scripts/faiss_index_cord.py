@@ -36,11 +36,13 @@ def main(args):
     index.index_docs(iterate(model, batches, reader))
 
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Script for testing the elasticsearch index in es_index'
     )
     parser.add_argument('--index_name', help='The name of the index')
+    parser.add_argument('--index_folder', help='Folder to store the index')
     parser.add_argument('--index_type', help='paragraphs or doc')
     parser.add_argument('--data_folder', help='Folder containing the files that should be indexed')
     parser.add_argument('--model_name', help='Name of the Doc2Vec model')
