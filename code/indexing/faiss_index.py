@@ -51,7 +51,8 @@ class Index:
     
     
 
-    def rank(self, queries: np.ndarray, size=100):
+    def rank(self, queries: list, size=100):
+        queries = np.array(queries)
         # retrieve size results for the query
         scores, faiss_doc_ids = self.faiss_index.search(queries, size)
         ranking_data = []

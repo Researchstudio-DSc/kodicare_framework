@@ -34,6 +34,7 @@ def main(args):
     batches = reader.iterate(args.data_folder)
 
     index.index_docs(iterate(model, batches, reader))
+    index.serialize(args.index_folder)
 
 
 
