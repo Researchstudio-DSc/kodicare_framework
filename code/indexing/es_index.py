@@ -129,10 +129,10 @@ class Index:
         r = requests.post(f"http://{self.host}/{self.index_name}/_msearch", data=data_json, headers=headers)
         responses = r.json()['responses']
         ranking_data = []
-        for index, ranking in enumerate(responses):
+        for q_i, ranking in enumerate(responses):
             if "hits" not in ranking:
                 print(ranking)
-            query_info = queries[index]
+            query_info = queries[q_i]
             ranking_data.append({
                 MAP_KEY__QUERY_TEXT: query_info[MAP_KEY__QUERY_TEXT],
                 MAP_KEY__QUERY_ID: query_info[MAP_KEY__QUERY_ID],
