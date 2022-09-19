@@ -60,6 +60,10 @@ class CORD19Reader(BatchReader):
             }
         }
         return data
+    
+
+    def to_string(self, document_obj):
+        return f"{document_obj['title']}\n{document_obj['abstract']}"
 
 
 class CORD19ParagraphReader(BatchReader):
@@ -97,4 +101,7 @@ class CORD19ParagraphReader(BatchReader):
             }
         }
         return data
-        
+    
+
+    def to_string(self, document_obj):
+        return f"{document_obj['title']}\n{document_obj['section']}\n{document_obj['paragraph_text']}" 

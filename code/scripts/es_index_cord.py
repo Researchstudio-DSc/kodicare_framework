@@ -26,9 +26,9 @@ if __name__ == '__main__':
 
     parser.add_argument('host', help='Host address where the elasticsearch service is running')
     parser.add_argument('index_name', help='The name of the index')
-    parser.add_argument('index_type', help='paragraphs or doc')
+    parser.add_argument('index_type', help='A choice between "paragraphs" or "doc"')
     parser.add_argument('index_body', help='The the index_body file containing settings and mappings')
-    parser.add_argument('data_folder', help='Folder containing the files that should be indexed')
+    parser.add_argument('data_folder', help='Folder containing the CORD files that should be indexed')
 
     args = parser.parse_args()
     main(args)

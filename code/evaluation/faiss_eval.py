@@ -1,18 +1,16 @@
 import argparse
 from ast import arg
 import json
+from tkinter.messagebox import QUESTION
 from lxml import etree
+import os
+from gensim.models.doc2vec import Doc2Vec
+from gensim.utils import simple_preprocess
 
-from code.indexing.es_index import Index
+from code.indexing.faiss_index import Index
 from code.indexing.readers import CORD19Reader, CORD19ParagraphReader
 
-MAP_KEY__QUERY_TEXT = "query_text"
-MAP_KEY__QUERY_ID = "query_id"
-MAP_KEY__RELEVANT_DOCS = "relevant_docs"
-MAP_KEY__DOC_ID = "doc_id"
-MAP_KEY__UID = "uid"
-MAP_KEY__SCORE = "score"
-MAP_KEY__INFO = "info"
+MODEL_FOLDER = "./models/doc2vec"
 
 def doc_reranking(cord_ranking):
     # rerank the documents using the original ranking
@@ -45,11 +43,19 @@ def main(args):
 
     with open(args.topics, 'r') as fp:
         topics = etree.parse(fp).getroot()
+
+    model_path = os.path.join(MODEL_FOLDER, args.model_name)
+    model = Doc2Vec.load(model_path)
+
     queries = []
     for topic in topics:
         query = topic[0]
+        question = topic[1]
         assert query.tag == "query"
-        queries.append(query.text)
+        assert question.tag == "question"
+        processed_doc = simple_preprocess(f"{query.text} {question.text}")
+        query_vector = model.infer_vector(processed_doc)
+        queries.append(query_vector)
     
     with open(args.cord_id_title, "r") as fp:
         cord_id_title = json.load(fp)
@@ -67,21 +73,20 @@ def main(args):
         reader = CORD19ParagraphReader(batch_size=16384)
     else:
         reader = CORD19Reader(batch_size=1024)
-    index = Index(args.index_name, host=args.host)
+    index = Index(args.index_name)
+    index.deserialize(args.index_folder)
 
-    ranking_data = index.rank(queries=queries, size=args.size, query_builder=reader)
+    ranking_data = index.rank(queries=queries, size=args.size)
 
-
-    for q_i, ranking_obj in enumerate(ranking_data):
+    for q_id, raw_ranking in enumerate(ranking_data):
         rank = 0
         cord_ranking = []
-
-        ranking = ranking_obj[MAP_KEY__RELEVANT_DOCS]
         # get general mapping to cord ids
-        for entry in ranking:
-            paper_id = entry[MAP_KEY__INFO]['doc_id']
+        for entry, score in raw_ranking:
+            #score = entry['_score']
+            paper_id = entry['doc_id']
             cord_uid = cord_uid_mapping[paper_id]
-            cord_ranking.append((cord_uid, entry[MAP_KEY__SCORE]))
+            cord_ranking.append((cord_uid, score))
         
         if args.index_type == "paragraphs":
             reranking = paragraph_reranking(cord_ranking)
@@ -89,8 +94,10 @@ def main(args):
             reranking = doc_reranking(cord_ranking)
         
         for rank, (cord_uid, score) in enumerate(reranking):
-            print(f"{q_i+1} Q0 {cord_uid} {rank} {score:.4f} {args.run_name}")
+            print(f"{q_id+1} Q0 {cord_uid} {rank} {score:.4f} {args.run_name}")
     
+    #with open(args.run_settings, "r") as fp:
+    #    run_settings = json.load(fp)
 
         
 
@@ -99,12 +106,13 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', help='Host address where the elasticsearch service is running')
     parser.add_argument("--cord_id_title")
     parser.add_argument("--topics")
     parser.add_argument('--index_name', help='The name of the index')
+    parser.add_argument('--index_folder', help='Folder to store the index')
     parser.add_argument('--index_type', help='paragraphs or doc')
     parser.add_argument('--run_name', help='Name of the run')
+    parser.add_argument('--model_name', help='Name of the Doc2Vec model')
     parser.add_argument('--size', type=int, default=100, help='Number of results to retrieve')
     #parser.add_argument("--run_settings", help='File with the run settings')
     args = parser.parse_args()
