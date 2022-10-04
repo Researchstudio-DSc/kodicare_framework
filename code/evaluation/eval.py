@@ -49,7 +49,10 @@ def main(args):
     for topic in topics:
         query = topic[0]
         assert query.tag == "query"
-        queries.append(query.text)
+        queries.append({
+            MAP_KEY__QUERY_ID: topic.attrib['number'],
+            MAP_KEY__QUERY_TEXT: query.text
+        })
     
     with open(args.cord_id_title, "r") as fp:
         cord_id_title = json.load(fp)
