@@ -8,7 +8,7 @@ from gensim.models.doc2vec import Doc2Vec
 from gensim.utils import simple_preprocess
 
 from code.indexing.faiss_index import Index
-from code.indexing.readers import CORD19Reader, CORD19ParagraphReader
+from code.utils.cord19_reader import CORD19Reader, CORD19ParagraphReader
 
 MODEL_FOLDER = "./models/doc2vec"
 
@@ -41,6 +41,7 @@ def paragraph_reranking(cord_ranking):
 
 def main(args):
 
+    ## QUERY READER
     with open(args.topics, 'r') as fp:
         topics = etree.parse(fp).getroot()
 
@@ -57,6 +58,8 @@ def main(args):
         query_vector = model.infer_vector(processed_doc)
         queries.append(query_vector)
     
+
+    ## MOVE TO INDEX
     with open(args.cord_id_title, "r") as fp:
         cord_id_title = json.load(fp)
     
@@ -69,6 +72,7 @@ def main(args):
             cord_uid_mapping[paper_id] = mapping['cord_uid']
     
 
+    ## DOCUMENT READER
     if args.index_type == "paragraphs":
         reader = CORD19ParagraphReader(batch_size=16384)
     else:

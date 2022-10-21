@@ -1,10 +1,13 @@
-import argparse
-from ast import arg
 import json
 from lxml import etree
+import hydra
+from omegaconf import DictConfig, OmegaConf
+import os
+
+from hydra.utils import instantiate
 
 from code.indexing.es_index import Index
-from code.indexing.readers import CORD19Reader, CORD19ParagraphReader
+from code.utils.cord19_reader import CORD19Reader, CORD19ParagraphReader
 
 MAP_KEY__QUERY_TEXT = "query_text"
 MAP_KEY__QUERY_ID = "query_id"
@@ -41,20 +44,16 @@ def paragraph_reranking(cord_ranking):
     return sorted(cord_uid_scores.items(), key=lambda x: x[1], reverse=True)
 
 
-def main(args):
+@hydra.main(version_base=None, config_path="../../conf", config_name="conf")
+def main(cfg : DictConfig):
+    ## QUERY READER
+    queries_path = os.path.join(cfg.config.data_dir, cfg.evaluation.data.queries)
+    query_reader = instantiate(cfg.evaluation.query_reader, queries_path=queries_path)
+    queries = query_reader.read()
 
-    with open(args.topics, 'r') as fp:
-        topics = etree.parse(fp).getroot()
-    queries = []
-    for topic in topics:
-        query = topic[0]
-        assert query.tag == "query"
-        queries.append({
-            MAP_KEY__QUERY_ID: topic.attrib['number'],
-            MAP_KEY__QUERY_TEXT: query.text
-        })
+    ## MOVE TO INDEX
     
-    with open(args.cord_id_title, "r") as fp:
+    with open(os.path.join(cfg.config.data_dir, cfg.evaluation.data.cord_id_title), "r") as fp:
         cord_id_title = json.load(fp)
     
     # mapping between IDs used in qrel_file and files in index
@@ -64,8 +63,8 @@ def main(args):
         paper_ids = [p.strip() for p in mapping['paper_id'].split(';')]
         for paper_id in paper_ids:
             cord_uid_mapping[paper_id] = mapping['cord_uid']
-    
 
+    ## DOCUMENT READER
     if args.index_type == "paragraphs":
         reader = CORD19ParagraphReader(batch_size=16384)
     else:
@@ -101,14 +100,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--host', help='Host address where the elasticsearch service is running')
-    parser.add_argument("--cord_id_title")
-    parser.add_argument("--topics")
-    parser.add_argument('--index_name', help='The name of the index')
-    parser.add_argument('--index_type', help='paragraphs or doc')
-    parser.add_argument('--run_name', help='Name of the run')
-    parser.add_argument('--size', type=int, default=100, help='Number of results to retrieve')
-    #parser.add_argument("--run_settings", help='File with the run settings')
-    args = parser.parse_args()
-    main(args)
+    main()

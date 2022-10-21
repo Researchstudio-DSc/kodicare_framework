@@ -1,0 +1,13 @@
+data:
+  queries: topics-rnd5.xml
+  cord_id_title: cord_id_title.json
+
+query_reader:
+  _target_: code.utils.cord19_reader.ESQueryReader
+
+retrieval:
+  run_name: es_doc
+  host: localhost:9200
+  index_name: kodicare_test
+  index_type: doc
+  size: 100

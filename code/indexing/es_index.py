@@ -120,7 +120,7 @@ class Index:
         data_json = ""
         for query in queries:
             q_header = {}
-            query_data = query_builder.build(query[MAP_KEY__QUERY_TEXT], size=size)
+            query_data = query_builder.build(query.text, size=size)
             data_json += json.dumps(q_header) + "\n"
             data_json += json.dumps(query_data) + "\n"
         headers = {
@@ -133,10 +133,25 @@ class Index:
             if "hits" not in ranking:
                 print(ranking)
             query_info = queries[q_i]
-            ranking_data.append({
-                MAP_KEY__QUERY_TEXT: query_info[MAP_KEY__QUERY_TEXT],
-                MAP_KEY__QUERY_ID: query_info[MAP_KEY__QUERY_ID],
+            """ranking_data.append({
+                MAP_KEY__QUERY_TEXT: query_info.text,
+                MAP_KEY__QUERY_ID: query_info.id,
                 MAP_KEY__RELEVANT_DOCS:
                     [{MAP_KEY__SCORE: hit['_score'], MAP_KEY__INFO: hit['_source']} for hit in ranking["hits"]["hits"]]
-            })
+            })"""
+            ranking_data.append(Query(
+                id=query_info.id,
+                text=query_info.text,
+                relevant_docs=[{Query.KEY_SCORE: hit['_score'], Query.KEY_INFO: hit['_source']} for hit in ranking["hits"]["hits"]]
+            ))
         return ranking_data
+
+
+class Query:
+    KEY_SCORE="score"
+    KEY_INFO="info"
+
+    def __init__(self, id, text, relevant_docs=None) -> None:
+        self.id = id
+        self.text = text
+        self.relevant_docs = relevant_docs

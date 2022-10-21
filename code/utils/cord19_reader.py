@@ -1,6 +1,10 @@
 import json
 import os
 from tqdm import tqdm
+from lxml import etree
+from code.indexing.es_index import Query
+
+from hydra.utils import instantiate
 
 class BatchReader:
 
@@ -104,4 +108,44 @@ class CORD19ParagraphReader(BatchReader):
     
 
     def to_string(self, document_obj):
-        return f"{document_obj['title']}\n{document_obj['section']}\n{document_obj['paragraph_text']}" 
+        return f"{document_obj['title']}\n{document_obj['section']}\n{document_obj['paragraph_text']}"
+
+
+class ESQueryReader:
+
+    def __init__(self, queries_path) -> None:
+        self.queries_path = queries_path
+    
+
+    def read(self):
+        with open(self.queries_path, 'r') as fp:
+            topics = etree.parse(fp).getroot()
+        queries = []
+        for topic in topics:
+            query = topic[0]
+            queries.append(Query(
+                id=topic.attrib['number'],
+                text=query.text
+            ))
+        return queries
+
+
+class FAISSQueryReader:
+
+    def __init__(self, queries_path, model_cfg) -> None:
+        self.queries_path = queries_path
+        self.model = instantiate(model_cfg)
+    
+
+    def read(self):
+        with open(self.queries_path, 'r') as fp:
+            topics = etree.parse(fp).getroot()
+
+        queries = []
+        for topic in topics:
+            query = topic[0]
+            question = topic[1]
+            assert query.tag == "query"
+            assert question.tag == "question"
+            query_vector = self.model.get_vector(f"{query.text} {question.text}")
+            queries.append(query_vector)

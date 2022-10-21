@@ -1,0 +1,9 @@
+# FILES
+defaults:  # (these specify which config FILES to use)
+  - _self_
+  - evaluation: cord19_doc
+
+# Direct PARAMETER setting
+config:  # to be provided for each run
+  out_dir: ???
+  data_dir: ???

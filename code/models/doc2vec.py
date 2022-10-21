@@ -4,6 +4,8 @@ import argparse
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from gensim.utils import simple_preprocess
 
+from code.models.model_util import BaseModel
+
 MODEL_FOLDER = "./models/doc2vec"
 
 def preprocess_document(raw_document, reader):
@@ -34,11 +36,25 @@ class DocumentStream:
     
     def __next__(self):
         return self.stream.__next__()
+
+
+class Doc2VecModel(BaseModel):
+
+    def __init__(self, model_folder, model_name):
+        super().__init__()
+        model_path = os.path.join(MODEL_FOLDER, args.model_name)
+        self.model = Doc2Vec.load(model_path)
+    
+
+    def get_vector(self, query_text):
+        processed_doc = simple_preprocess(query_text)
+        query_vector = self. model.infer_vector(processed_doc)
+        return query_vector
         
 
 
 def main(args):
-    from code.indexing.readers import CORD19Reader, CORD19ParagraphReader
+    from code.utils.cord19_reader import CORD19Reader, CORD19ParagraphReader
 
     if args.index_type == "paragraphs":
         reader = CORD19ParagraphReader(batch_size=16384)
