@@ -2,6 +2,8 @@ import faiss
 import pickle
 import numpy as np
 import os
+from typing import List
+from code.indexing.index_util import Query
 
 class Index:
 
@@ -51,14 +53,18 @@ class Index:
     
     
 
-    def rank(self, queries: list, size=100):
-        queries = np.array(queries)
+    def rank(self, queries: List[Query], size=100) -> List[Query]:
+        query_vectors = np.array([q.data for q in queries])
         # retrieve size results for the query
-        scores, faiss_doc_ids = self.faiss_index.search(queries, size)
+        scores, faiss_doc_ids = self.faiss_index.search(query_vectors, size)
         ranking_data = []
-        for faiss_doc_id, score in zip(faiss_doc_ids, scores):
+        for faiss_doc_id, score, query in zip(faiss_doc_ids, scores, queries):
             query_results = []
             for i, s in zip(faiss_doc_id, score):
                 query_results.append((self.index[int(i)], s))
-            ranking_data.append(query_results)
+            ranking_data.append(Query(
+                id=query.id,
+                data=query.data,
+                relevant_docs=query_results
+            ))
         return ranking_data

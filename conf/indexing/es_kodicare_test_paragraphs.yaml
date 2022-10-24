@@ -1,0 +1,5 @@
+index:
+  _target_: code.indexing.es_index.Index
+  index_name: kodicare_test_paragraphs
+  host: localhost:9200
+  index_body: models/elasticsearch/index_body_paragraphs.json

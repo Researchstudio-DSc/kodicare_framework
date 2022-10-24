@@ -6,12 +6,12 @@ query_reader:
   _target_: code.utils.cord19_reader.ESQueryReader
   index_fields: 
     - title
-    - abstract
+    - section
+    - paragraph_text
 
 retrieval:
-  runs_dir: runs/cord19
-  run_name: es_doc
-  size: 100
-  agg_size: 100
-  rank_aggregation: 
-    _target_: code.evaluation.eval.agg_remove_duplicates
+  run_name: es_paragraphs
+  size: 1000
+  agg_size: 1000
+  rank_aggregation:
+    _target_: code.evaluation.eval.agg_paragraphs_recip

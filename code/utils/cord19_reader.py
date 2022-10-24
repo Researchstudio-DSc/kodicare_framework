@@ -2,7 +2,7 @@ import json
 import os
 from tqdm import tqdm
 from lxml import etree
-from code.indexing.es_index import Query
+from code.indexing.index_util import Query
 
 from hydra.utils import instantiate
 
@@ -51,21 +51,6 @@ class CORD19Reader(BatchReader):
         return [(document_obj["uid"],document_obj)]
     
 
-    def build(self, query, size):
-        data = {
-            "from" : 0, 
-            "size" : size,
-            "query": {
-                "multi_match" : {
-                    "query": query,
-                    "type": "cross_fields",
-                    "fields": ["title", "abstract"]
-                }
-            }
-        }
-        return data
-    
-
     def to_string(self, document_obj):
         return f"{document_obj['title']}\n{document_obj['abstract']}"
 
@@ -92,29 +77,15 @@ class CORD19ParagraphReader(BatchReader):
         return paragraph_objs
     
 
-    def build(self, query, size):
-        data = {
-            "from" : 0, 
-            "size" : size,
-            "query": {
-                "multi_match" : {
-                    "query": query,
-                    "type": "cross_fields",
-                    "fields": ["title", "section", "paragraph_text"]
-                }
-            }
-        }
-        return data
-    
-
     def to_string(self, document_obj):
         return f"{document_obj['title']}\n{document_obj['section']}\n{document_obj['paragraph_text']}"
 
 
 class ESQueryReader:
 
-    def __init__(self, queries_path) -> None:
+    def __init__(self, queries_path, index_fields) -> None:
         self.queries_path = queries_path
+        self.index_fields = index_fields
     
 
     def read(self):
@@ -125,9 +96,24 @@ class ESQueryReader:
             query = topic[0]
             queries.append(Query(
                 id=topic.attrib['number'],
-                text=query.text
+                data=query.text
             ))
         return queries
+    
+
+    def build(self, query, size):
+        data = {
+            "from" : 0, 
+            "size" : size,
+            "query": {
+                "multi_match" : {
+                    "query": query,
+                    "type": "cross_fields",
+                    "fields": [f for f in self.index_fields]
+                }
+            }
+        }
+        return data
 
 
 class FAISSQueryReader:
@@ -142,10 +128,13 @@ class FAISSQueryReader:
             topics = etree.parse(fp).getroot()
 
         queries = []
-        for topic in topics:
+        for idx, topic in enumerate(topics):
             query = topic[0]
             question = topic[1]
             assert query.tag == "query"
             assert question.tag == "question"
             query_vector = self.model.get_vector(f"{query.text} {question.text}")
-            queries.append(query_vector)
+            queries.append(Query(
+                id=idx,
+                data=query_vector
+            ))

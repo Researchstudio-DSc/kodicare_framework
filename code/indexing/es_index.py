@@ -1,7 +1,11 @@
+from operator import mod
+from typing import Literal
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 import json
 import requests
+from typing import List
+from code.indexing.index_util import Query
 
 MAP_KEY__QUERY_TEXT = "query_text"
 MAP_KEY__QUERY_ID = "query_id"
@@ -48,19 +52,24 @@ def build_multimatch_query(query, fields, size):
 
 class Index:
 
-    def __init__(self, index_name, host="localhost:9200", es=None, ic=None):
+    def __init__(self, index_name, host="localhost:9200", index_body=None, 
+    mode: Literal["create", "load"]="load", es=None, ic=None):
         self.index_name = index_name
         self.host = host
+        self.index_body = index_body
+        self.mode = mode
+        if mode == "create":
+            self.create_index()
         self.es = es if es != None else Elasticsearch(hosts=[host])
         self.ic = ic if ic != None else IndicesClient(self.es)
 
-    def create_index(self, index_body):
+    def create_index(self):
         """
         Create the index, recreate it if it exists
         """
         if self.ic.exists(index=self.index_name):
             self.ic.delete(index=self.index_name)
-        self.ic.create(index=self.index_name, body=index_body)
+        self.ic.create(index=self.index_name, body=self.index_body)
 
     def delete_index(self):
         """
@@ -112,7 +121,7 @@ class Index:
             r = requests.post(f"http://{self.host}/_bulk", data=data_json, headers=headers)
             resp = r.json()
 
-    def rank(self, queries: list, size=100, query_builder=None):
+    def rank(self, queries: List[Query], size=100, query_builder=None) -> List[Query]:
         """
         Rank multiple queries simultaneously
         return rankings for each query
@@ -120,7 +129,7 @@ class Index:
         data_json = ""
         for query in queries:
             q_header = {}
-            query_data = query_builder.build(query.text, size=size)
+            query_data = query_builder.build(query.data, size=size)
             data_json += json.dumps(q_header) + "\n"
             data_json += json.dumps(query_data) + "\n"
         headers = {
@@ -141,17 +150,7 @@ class Index:
             })"""
             ranking_data.append(Query(
                 id=query_info.id,
-                text=query_info.text,
-                relevant_docs=[{Query.KEY_SCORE: hit['_score'], Query.KEY_INFO: hit['_source']} for hit in ranking["hits"]["hits"]]
+                data=query_info.data,
+                relevant_docs=[{Query.KEY_SCORE: hit['_score'], Query.KEY_SOURCE: hit['_source']} for hit in ranking["hits"]["hits"]]
             ))
         return ranking_data
-
-
-class Query:
-    KEY_SCORE="score"
-    KEY_INFO="info"
-
-    def __init__(self, id, text, relevant_docs=None) -> None:
-        self.id = id
-        self.text = text
-        self.relevant_docs = relevant_docs

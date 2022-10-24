@@ -4,10 +4,9 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
 
-from hydra.utils import instantiate
+from hydra.utils import instantiate, call
 
-from code.indexing.es_index import Index
-from code.utils.cord19_reader import CORD19Reader, CORD19ParagraphReader
+from code.indexing.index_util import Query
 
 MAP_KEY__QUERY_TEXT = "query_text"
 MAP_KEY__QUERY_ID = "query_id"
@@ -17,12 +16,11 @@ MAP_KEY__UID = "uid"
 MAP_KEY__SCORE = "score"
 MAP_KEY__INFO = "info"
 
-def doc_reranking(cord_ranking):
-    # rerank the documents using the original ranking
-    # but filter out duplicates
+def agg_remove_duplicates(ranking, agg_size):
+    # filter out duplicates, taking the first rank
     found_ids = set()
     reranking = []
-    for cord_uid, score in cord_ranking:
+    for cord_uid, score in ranking:
         if cord_uid in found_ids:
             continue
         found_ids.add(cord_uid)
@@ -33,18 +31,18 @@ def doc_reranking(cord_ranking):
 def reciprocal_rank_score(rank):
     return 1/(10+rank)
 
-def paragraph_reranking(cord_ranking):
+def agg_paragraphs_recip(ranking, agg_size):
     # rerank by calculating a score based on the rank positions of a
     # document's paragraphs in the original ranking
     cord_uid_scores = {}
-    for rank, (cord_uid, _) in enumerate(cord_ranking):
+    for rank, (cord_uid, _) in enumerate(ranking):
         if cord_uid not in cord_uid_scores:
             cord_uid_scores[cord_uid] = 0
         cord_uid_scores[cord_uid] += reciprocal_rank_score(rank)
-    return sorted(cord_uid_scores.items(), key=lambda x: x[1], reverse=True)
+    return sorted(cord_uid_scores.items(), key=lambda x: x[1], reverse=True)[:agg_size]
 
 
-@hydra.main(version_base=None, config_path="../../conf", config_name="conf")
+@hydra.main(version_base=None, config_path="../../conf", config_name=None)
 def main(cfg : DictConfig):
     ## QUERY READER
     queries_path = os.path.join(cfg.config.data_dir, cfg.evaluation.data.queries)
@@ -64,39 +62,34 @@ def main(cfg : DictConfig):
         for paper_id in paper_ids:
             cord_uid_mapping[paper_id] = mapping['cord_uid']
 
-    ## DOCUMENT READER
-    if args.index_type == "paragraphs":
-        reader = CORD19ParagraphReader(batch_size=16384)
-    else:
-        reader = CORD19Reader(batch_size=1024)
-    index = Index(args.index_name, host=args.host)
+    ## INDEX
+    index = instantiate(cfg.indexing.index, mode="load")
 
-    ranking_data = index.rank(queries=queries, size=args.size, query_builder=reader)
+    ranking_data = index.rank(queries=queries, size=cfg.evaluation.retrieval.size, query_builder=query_reader)
 
 
-    for q_i, ranking_obj in enumerate(ranking_data):
+    run_file = os.path.join(cfg.config.out_dir, cfg.evaluation.retrieval.run_name)
+    run_fp = open(run_file, "w")
+    ## RANKING
+    # TODO: support different output formats
+    for q_i, query in enumerate(ranking_data):
         rank = 0
-        cord_ranking = []
+        ranking = []
 
-        ranking = ranking_obj[MAP_KEY__RELEVANT_DOCS]
+        raw_ranking = query.relevant_docs
         # get general mapping to cord ids
-        for entry in ranking:
-            paper_id = entry[MAP_KEY__INFO]['doc_id']
+        for entry in raw_ranking:
+            paper_id = entry[Query.KEY_SOURCE]['doc_id']
             cord_uid = cord_uid_mapping[paper_id]
-            cord_ranking.append((cord_uid, entry[MAP_KEY__SCORE]))
+            ranking.append((cord_uid, entry[Query.KEY_SCORE]))
         
-        if args.index_type == "paragraphs":
-            reranking = paragraph_reranking(cord_ranking)
-        else: # whole documents
-            reranking = doc_reranking(cord_ranking)
+        # rank aggregation
+        agg_ranking = call(cfg.evaluation.retrieval.rank_aggregation, ranking=ranking, agg_size=cfg.evaluation.retrieval.agg_size)
         
-        for rank, (cord_uid, score) in enumerate(reranking):
-            print(f"{q_i+1} Q0 {cord_uid} {rank} {score:.4f} {args.run_name}")
+        for rank, (cord_uid, score) in enumerate(agg_ranking):
+            run_fp.write(f"{q_i+1} Q0 {cord_uid} {rank} {score:.4f} {cfg.evaluation.retrieval.run_name}\n")
+    run_fp.close()
     
-
-        
-
-
 
 
 if __name__ == "__main__":
