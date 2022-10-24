@@ -1,4 +1,3 @@
-from operator import mod
 from typing import Literal
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -52,16 +51,18 @@ def build_multimatch_query(query, fields, size):
 
 class Index:
 
-    def __init__(self, index_name, host="localhost:9200", index_body=None, 
+    def __init__(self, index_name, host="localhost:9200", index_body_path=None, 
     mode: Literal["create", "load"]="load", es=None, ic=None):
         self.index_name = index_name
         self.host = host
-        self.index_body = index_body
+        self.index_body_path = index_body_path
         self.mode = mode
-        if mode == "create":
-            self.create_index()
         self.es = es if es != None else Elasticsearch(hosts=[host])
         self.ic = ic if ic != None else IndicesClient(self.es)
+        if mode == "create":
+            with open(index_body_path, 'r') as fp:
+                self.index_body = json.load(fp)
+            self.create_index()
 
     def create_index(self):
         """

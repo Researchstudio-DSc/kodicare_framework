@@ -1,34 +1,17 @@
-import argparse
-import json
-from code.indexing.es_index import Index
-from code.indexing.readers import CORD19Reader, CORD19ParagraphReader
+import os
+import hydra
+from hydra.utils import instantiate
 
 
-def main(args):
-    # index body
-    with open(args.index_body, 'r') as fp:
-        index_body = json.load(fp)
+@hydra.main(version_base=None, config_path="../../conf", config_name=None)
+def main(cfg):
 
-    if args.index_type == "paragraphs":
-        reader = CORD19ParagraphReader(batch_size=16384)
-    else:
-        reader = CORD19Reader(batch_size=1024)
-    index = Index(args.index_name, host=args.host)
+    reader = instantiate(cfg.indexing.collection_reader)
+    index = instantiate(cfg.indexing.index, mode="create")
 
-    index.create_index(index_body=index_body)
-    index.index_docs(reader.iterate(args.data_folder))
+    document_full_dir = os.path.join(cfg.config.data_dir, cfg.indexing.document_folder)
+    index.index_docs(reader.iterate(document_full_dir))
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Script for testing the elasticsearch index in es_index'
-    )
-
-    parser.add_argument('host', help='Host address where the elasticsearch service is running')
-    parser.add_argument('index_name', help='The name of the index')
-    parser.add_argument('index_type', help='A choice between "paragraphs" or "doc"')
-    parser.add_argument('index_body', help='The the index_body file containing settings and mappings')
-    parser.add_argument('data_folder', help='Folder containing the CORD files that should be indexed')
-
-    args = parser.parse_args()
-    main(args)
+    main()

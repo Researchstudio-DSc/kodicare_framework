@@ -2,4 +2,10 @@ index:
   _target_: code.indexing.es_index.Index
   index_name: kodicare_test
   host: localhost:9200
-  index_body: models/elasticsearch/index_body.json
+  index_body_path: models/elasticsearch/index_body.json
+
+collection_reader:
+  _target_: code.utils.cord19_reader.CORD19Reader
+  batch_size: 1024
+
+document_folder: cord-19_2020-07-16__pdf_json__normalized
