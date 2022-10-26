@@ -13,7 +13,7 @@ class BatchReader:
         self.batch_size = batch_size
     
 
-    def read(self, document_data):
+    def read(self, document):
         raise NotImplementedError
     
 
@@ -22,9 +22,9 @@ class BatchReader:
         # go through all documents and return the documents as a batch of documents
         for fname in tqdm(os.listdir(folder)):
             with open(os.path.join(folder, fname), 'r') as fp:
-                document_data = json.load(fp)
+                document = json.load(fp)
             # read might return multiple documents, e.g. when they are split into paragraphs
-            for index_document in self.read(document_data):
+            for index_document in self.read(document):
                 batch.append(index_document)
                 if len(batch) == self.batch_size:
                     yield batch
@@ -40,12 +40,12 @@ class CORD19Reader(BatchReader):
         super().__init__(batch_size)
 
 
-    def read(self, document_data):
-        abstract = " ".join([p["text"] for p in document_data["paragraphs"] if p["section"]["text"] == "Abstract"])
+    def read(self, document):
+        abstract = " ".join([p["text"] for p in document["paragraphs"] if p["section"]["text"] == "Abstract"])
         document_obj = {
-            "uid": document_data["uid"],
-            "doc_id": document_data["doc_id"],
-            "title": document_data["metadata"]["title"],
+            "uid": document["uid"],
+            "doc_id": document["doc_id"],
+            "title": document["metadata"]["title"],
             "abstract": abstract
         }
         return [(document_obj["uid"],document_obj)]
@@ -61,15 +61,15 @@ class CORD19ParagraphReader(BatchReader):
         super().__init__(batch_size)
 
 
-    def read(self, document_data):
+    def read(self, document):
         paragraph_objs = []
-        for idx, p in enumerate(document_data["paragraphs"]):
+        for idx, p in enumerate(document["paragraphs"]):
             document_obj = {
-                "uid": document_data["uid"],
-                "doc_id": document_data["doc_id"],
-                "paragraph_id": f'{document_data["uid"]}_{idx}',
+                "uid": document["uid"],
+                "doc_id": document["doc_id"],
+                "paragraph_id": f'{document["uid"]}_{idx}',
                 "paragraph_number": idx,
-                "title": document_data["metadata"]["title"],
+                "title": document["metadata"]["title"],
                 "section": p["section"]["text"],
                 "paragraph_text": p["text"]
             }

@@ -1,0 +1,21 @@
+{
+    "settings": {
+        "similarity": {
+            "the_sim": {
+                "type": "BM25",
+                "k1": 1.2,
+                "b": 0.75
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "passage_id": { "type": "keyword"  },
+            "passage_text": {
+                "type": "text",
+                "analyzer": "german",
+                "similarity": "the_sim"
+            }
+        }
+    }
+}

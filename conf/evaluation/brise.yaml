@@ -1,0 +1,11 @@
+data:
+  queries: queries.tsv
+
+query_reader:
+  _target_: code.utils.ris_breg_reader.ESQueryReader
+
+retrieval:
+  runs_dir: runs/brise
+  run_name: es
+  size: 100
+  agg_size: 100

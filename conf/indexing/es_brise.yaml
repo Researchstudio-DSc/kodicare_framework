@@ -1,0 +1,11 @@
+index:
+  _target_: code.indexing.es_index.Index
+  index_name: kodicare_brise
+  host: localhost:9200
+  index_body_path: models/elasticsearch/ris_index_body.json
+
+collection_reader:
+  _target_: code.utils.ris_breg_reader.RisBregReader
+  batch_size: 16384
+
+collection: full_collection.tsv

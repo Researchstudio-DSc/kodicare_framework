@@ -8,13 +8,6 @@ from hydra.utils import instantiate, call
 
 from code.indexing.index_util import Query
 
-MAP_KEY__QUERY_TEXT = "query_text"
-MAP_KEY__QUERY_ID = "query_id"
-MAP_KEY__RELEVANT_DOCS = "relevant_docs"
-MAP_KEY__DOC_ID = "doc_id"
-MAP_KEY__UID = "uid"
-MAP_KEY__SCORE = "score"
-MAP_KEY__INFO = "info"
 
 def agg_remove_duplicates(ranking, agg_size):
     # filter out duplicates, taking the first rank
@@ -84,7 +77,10 @@ def main(cfg : DictConfig):
             ranking.append((cord_uid, entry[Query.KEY_SCORE]))
         
         # rank aggregation
-        agg_ranking = call(cfg.evaluation.retrieval.rank_aggregation, ranking=ranking, agg_size=cfg.evaluation.retrieval.agg_size)
+        if cfg.evaluation.retrieval.rank_aggregation:
+            agg_ranking = call(cfg.evaluation.retrieval.rank_aggregation, ranking=ranking, agg_size=cfg.evaluation.retrieval.agg_size)
+        else:
+            agg_ranking = ranking
         
         for rank, (cord_uid, score) in enumerate(agg_ranking):
             run_fp.write(f"{q_i+1} Q0 {cord_uid} {rank} {score:.4f} {cfg.evaluation.retrieval.run_name}\n")
