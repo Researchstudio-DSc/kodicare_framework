@@ -6,6 +6,5 @@ index:
 
 collection_reader:
   _target_: code.utils.ris_breg_reader.RisBregReader
+  collection: full_collection.tsv
   batch_size: 16384
-
-collection: full_collection.tsv

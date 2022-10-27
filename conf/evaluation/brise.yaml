@@ -9,3 +9,4 @@ retrieval:
   run_name: es
   size: 100
   agg_size: 100
+  rank_aggregation:

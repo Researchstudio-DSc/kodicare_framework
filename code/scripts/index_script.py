@@ -5,8 +5,7 @@ from hydra.utils import instantiate
 
 @hydra.main(version_base=None, config_path="../../conf", config_name=None)
 def main(cfg):
-    collection_path = os.path.join(cfg.config.data_dir, cfg.indexing.collection)
-    reader = instantiate(cfg.indexing.collection_reader, collection_path=collection_path)
+    reader = instantiate(cfg.indexing.collection_reader, data_dir=cfg.config.data_dir)
     index = instantiate(cfg.indexing.index, mode="create")
     index.index_docs(reader.iterate())
 

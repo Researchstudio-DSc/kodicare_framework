@@ -1,5 +1,5 @@
 
-
+import os
 from typing import Iterable, Union
 
 
@@ -9,10 +9,12 @@ class CollectionReader:
     # An index_document should be indexed as-is
     # All necessary pre-index transformations should be done by the Reader
 
-    def __init__(self, collection_path) -> None:
+    def __init__(self, data_dir=None, collection=None) -> None:
         # collection path can be either a dir or a file
-        self.collection_path = collection_path
-    
+        self.data_dir = data_dir
+        if collection:
+            self.collection_path = os.path.join(data_dir, collection)
+
 
     def read(self, document) -> Union[Iterable, tuple]:
         # returns either a document tuple (doc_id, doc_data)

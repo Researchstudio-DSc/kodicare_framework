@@ -8,8 +8,8 @@ from code.indexing.index_util import Query
 
 class RISBatchReader(CollectionReader):
 
-    def __init__(self, collection_path, batch_size: int = 1024) -> None:
-        super().__init__(collection_path)
+    def __init__(self, data_dir, collection, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection)
         self.batch_size = batch_size
    
 
@@ -51,21 +51,21 @@ class RISBatchReader(CollectionReader):
 
 class RisBregReader(RISBatchReader):
 
-    def __init__(self, collection_path, batch_size: int = 1024) -> None:
-        super().__init__(collection_path, batch_size)
+    def __init__(self, data_dir, collection, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection, batch_size)
 
 
     def read(self, document):
         p_id, passage_text = document
         document_obj = {
-            "passage_id": p_id,
+            "qrel_id": p_id,
             "passage_text": passage_text
         }
-        return (document_obj["passage_id"],document_obj)
+        return (document_obj["qrel_id"],document_obj)
     
 
     def to_string(self, document_obj):
-        return f'{document_obj["passage_id"]}'
+        return f'{document_obj["qrel_id"]}'
 
 
 class ESQueryReader:
@@ -75,14 +75,15 @@ class ESQueryReader:
     
 
     def read(self):
-        with open(self.collection_path, 'r') as fp:
-            queries = csv.reader(fp, delimiter="\t", quotechar='"')
-        queries = []
-        for q_id, q_text in queries:
-            queries.append(Query(
-                id=q_id,
-                data=q_text
-            ))
+        with open(self.queries_path, 'r') as fp:
+            queries_tsv = csv.reader(fp, delimiter="\t", quotechar='"')
+            queries = []
+            for q_id, q_text in queries_tsv:
+                q_text_tokens = q_text.split()
+                queries.append(Query(
+                    id=q_id,
+                    data=" ".join(q_text_tokens[:512])
+                ))
         return queries
     
 

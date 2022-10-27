@@ -6,22 +6,30 @@ from code.indexing.index_util import Query
 
 from hydra.utils import instantiate
 
-class BatchReader:
+from code.utils.reader_util import CollectionReader
 
-    def __init__(self, batch_size: int = 1024) -> None:
-        super().__init__()
+class CORD19BatchReader(CollectionReader):
+
+    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection)
         self.batch_size = batch_size
+        # mapping between IDs used in qrel_file and files in index
+        with open(os.path.join(data_dir, cord_id_title), "r") as fp:
+            cord_id_title_l = json.load(fp)
+
+        self.cord_uid_mapping = {}
+        for mapping in cord_id_title_l:
+            # paper_id field can contain multiple ids separated by ';'
+            paper_ids = [p.strip() for p in mapping['paper_id'].split(';')]
+            for paper_id in paper_ids:
+                self.cord_uid_mapping[paper_id] = mapping['cord_uid']
     
 
-    def read(self, document):
-        raise NotImplementedError
-    
-
-    def iterate(self, folder):
+    def iterate(self):
         batch = []
         # go through all documents and return the documents as a batch of documents
-        for fname in tqdm(os.listdir(folder)):
-            with open(os.path.join(folder, fname), 'r') as fp:
+        for fname in tqdm(os.listdir(self.collection_path)):
+            with open(os.path.join(self.collection_path, fname), 'r') as fp:
                 document = json.load(fp)
             # read might return multiple documents, e.g. when they are split into paragraphs
             for index_document in self.read(document):
@@ -34,15 +42,17 @@ class BatchReader:
             yield batch
 
 
-class CORD19Reader(BatchReader):
+class CORD19Reader(CORD19BatchReader):
 
-    def __init__(self, batch_size: int = 64) -> None:
-        super().__init__(batch_size)
+    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection, cord_id_title, batch_size)
 
 
     def read(self, document):
         abstract = " ".join([p["text"] for p in document["paragraphs"] if p["section"]["text"] == "Abstract"])
+        cord_uid = self.cord_uid_mapping[document["doc_id"]]
         document_obj = {
+            "qrel_id": cord_uid,
             "uid": document["uid"],
             "doc_id": document["doc_id"],
             "title": document["metadata"]["title"],
@@ -55,16 +65,18 @@ class CORD19Reader(BatchReader):
         return f"{document_obj['title']}\n{document_obj['abstract']}"
 
 
-class CORD19ParagraphReader(BatchReader):
+class CORD19ParagraphReader(CORD19BatchReader):
 
-    def __init__(self, batch_size: int = 64) -> None:
-        super().__init__(batch_size)
+    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection, cord_id_title, batch_size)
 
 
     def read(self, document):
         paragraph_objs = []
         for idx, p in enumerate(document["paragraphs"]):
+            cord_uid = self.cord_uid_mapping[document["doc_id"]]
             document_obj = {
+                "qrel_id": cord_uid,
                 "uid": document["uid"],
                 "doc_id": document["doc_id"],
                 "paragraph_id": f'{document["uid"]}_{idx}',
