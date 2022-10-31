@@ -56,16 +56,16 @@ class RisBregReader(RISBatchReader):
 
 
     def read(self, document):
-        p_id, passage_text = document
+        passage_id, passage_text = document
         document_obj = {
-            "qrel_id": p_id,
+            "document_id": passage_id,
             "passage_text": passage_text
         }
-        return (document_obj["qrel_id"],document_obj)
+        return (document_obj["document_id"],document_obj)
     
 
     def to_string(self, document_obj):
-        return f'{document_obj["qrel_id"]}'
+        return f'{document_obj["document_id"]}'
 
 
 class ESQueryReader:

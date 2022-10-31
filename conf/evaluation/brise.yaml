@@ -4,6 +4,12 @@ data:
 query_reader:
   _target_: code.utils.ris_breg_reader.ESQueryReader
 
+
+tokenizer:
+  _target_: code.preprocessing.brise_tokenizer.RisBregTokenizer
+  spacy_model_name: de_core_news_md
+
+
 retrieval:
   runs_dir: runs/brise
   run_name: es

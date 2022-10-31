@@ -52,7 +52,7 @@ class CORD19Reader(CORD19BatchReader):
         abstract = " ".join([p["text"] for p in document["paragraphs"] if p["section"]["text"] == "Abstract"])
         cord_uid = self.cord_uid_mapping[document["doc_id"]]
         document_obj = {
-            "qrel_id": cord_uid,
+            "document_id": cord_uid,
             "uid": document["uid"],
             "doc_id": document["doc_id"],
             "title": document["metadata"]["title"],
@@ -76,7 +76,7 @@ class CORD19ParagraphReader(CORD19BatchReader):
         for idx, p in enumerate(document["paragraphs"]):
             cord_uid = self.cord_uid_mapping[document["doc_id"]]
             document_obj = {
-                "qrel_id": cord_uid,
+                "document_id": cord_uid,
                 "uid": document["uid"],
                 "doc_id": document["doc_id"],
                 "paragraph_id": f'{document["uid"]}_{idx}',

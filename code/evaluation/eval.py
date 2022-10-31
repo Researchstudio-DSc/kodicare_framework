@@ -52,15 +52,16 @@ def main(cfg : DictConfig):
     run_fp = open(run_file, "w")
 
     # TODO: support different output formats
-    for q_i, query in enumerate(ranking_data):
+    for query, query in zip(queries, ranking_data):
+        q_id = query.id
         rank = 0
         ranking = []
 
         raw_ranking = query.relevant_docs
         # get general mapping to cord ids
         for entry in raw_ranking:
-            qrel_id = entry[Query.KEY_SOURCE]['qrel_id']
-            ranking.append((qrel_id, entry[Query.KEY_SCORE]))
+            document_id = entry[Query.KEY_SOURCE]['document_id']
+            ranking.append((document_id, entry[Query.KEY_SCORE]))
         
         # rank aggregation
         if cfg.evaluation.retrieval.rank_aggregation:
@@ -68,8 +69,8 @@ def main(cfg : DictConfig):
         else:
             agg_ranking = ranking
         
-        for rank, (cord_uid, score) in enumerate(agg_ranking):
-            run_fp.write(f"{q_i+1} Q0 {cord_uid} {rank} {score:.4f} {cfg.evaluation.retrieval.run_name}\n")
+        for rank, (document_id, score) in enumerate(agg_ranking):
+            run_fp.write(f"{q_id} Q0 {document_id} {rank} {score:.4f} {cfg.evaluation.retrieval.run_name}\n")
     run_fp.close()
     
 

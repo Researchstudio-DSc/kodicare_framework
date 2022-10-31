@@ -10,7 +10,7 @@
     },
     "mappings": {
         "properties": {
-            "passage_id": { "type": "keyword"  },
+            "document_id": { "type": "keyword"  },
             "passage_text": {
                 "type": "text",
                 "analyzer": "german",
