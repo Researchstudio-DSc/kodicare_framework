@@ -1,8 +1,9 @@
-data:
-  queries: queries.tsv
 
 query_reader:
   _target_: code.utils.ris_breg_reader.ESQueryReader
+  queries: queries.tsv
+  collection_prob_dict_file: term_p.json
+  kli_ratio: 0.4
 
 
 tokenizer:

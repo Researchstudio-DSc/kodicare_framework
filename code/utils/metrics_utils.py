@@ -14,6 +14,15 @@ def calculate_similarity_between_vectors(metric_key, vector1, vector2):
     return 0
 
 
+def get_token_counts(tokens: list):
+    # get the token count of each token in a list of tokens
+    token_counts = {}
+    for token in tokens:
+        if token not in token_counts:
+            token_counts[token] = 0
+        token_counts[token] += 1
+    return token_counts
+
 
 def kli(p_t_d, p_t_c):
     # p_t_d = P(t|D)
@@ -22,7 +31,7 @@ def kli(p_t_d, p_t_c):
     return p_t_d * math.log10(p_t_d / p_t_c)
 
 
-def kli_divergence(terms: list, document_counts: dict, collection_prob_dict: dict):
+def kli_divergence(terms: set, document_counts: dict, collection_prob_dict: dict):
     document_total_terms = sum(document_counts.values())
     document_prob = {term: count/document_total_terms for term, count in document_counts.items()}
     collection_total_terms = collection_prob_dict["total_terms"]

@@ -38,8 +38,7 @@ def agg_paragraphs_recip(ranking, agg_size):
 @hydra.main(version_base=None, config_path="../../conf", config_name=None)
 def main(cfg : DictConfig):
     ## QUERY READER
-    queries_path = os.path.join(cfg.config.data_dir, cfg.evaluation.data.queries)
-    query_reader = instantiate(cfg.evaluation.query_reader, queries_path=queries_path)
+    query_reader = instantiate(cfg.evaluation.query_reader, data_dir=cfg.config.data_dir)
     queries = query_reader.read()
 
     ## INDEX

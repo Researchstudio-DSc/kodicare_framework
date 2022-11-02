@@ -95,8 +95,8 @@ class CORD19ParagraphReader(CORD19BatchReader):
 
 class ESQueryReader:
 
-    def __init__(self, queries_path, index_fields) -> None:
-        self.queries_path = queries_path
+    def __init__(self, queries, data_dir, index_fields) -> None:
+        self.queries_path = os.path.join(data_dir, queries)
         self.index_fields = index_fields
     
 

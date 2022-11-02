@@ -1,6 +1,10 @@
 import csv
+import json
+import os
 from typing import Iterable, Union
 from tqdm import tqdm
+from code.utils.metrics_utils import kli_divergence, get_token_counts
+from code.preprocessing.brise_tokenizer import RisBregTokenizer
 
 from code.utils.reader_util import CollectionReader
 from code.indexing.index_util import Query
@@ -70,8 +74,12 @@ class RisBregReader(RISBatchReader):
 
 class ESQueryReader:
 
-    def __init__(self, queries_path) -> None:
-        self.queries_path = queries_path
+    def __init__(self, queries=None, data_dir=None, collection_prob_dict_file=None, kli_ratio=0.6) -> None:
+        self.queries_path = os.path.join(data_dir, queries)
+        with open(os.path.join(data_dir, collection_prob_dict_file), "r") as fp:
+            self.collection_prob_dict = json.load(fp)
+        self.kli_ratio = kli_ratio
+        self.tokenizer = RisBregTokenizer("de_core_news_md")
     
 
     def read(self):
@@ -79,10 +87,18 @@ class ESQueryReader:
             queries_tsv = csv.reader(fp, delimiter="\t", quotechar='"')
             queries = []
             for q_id, q_text in queries_tsv:
-                q_text_tokens = q_text.split()
+                q_tokens = self.tokenizer.tokenize(q_text)
+                q_token_counts = get_token_counts(q_tokens)
+                q_token_probs = kli_divergence(
+                    terms=set(q_tokens),
+                    document_counts=q_token_counts, 
+                    collection_prob_dict=self.collection_prob_dict)
+                
+                select_tokens_count = int(len(q_token_probs)*self.kli_ratio)
+                q_token_probs = q_token_probs[:select_tokens_count]
                 queries.append(Query(
                     id=q_id,
-                    data=" ".join(q_text_tokens[:512])
+                    data=" ".join([t for t, p in q_token_probs])
                 ))
         return queries
     

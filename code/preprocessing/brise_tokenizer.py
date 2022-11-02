@@ -17,3 +17,7 @@ class RisBregTokenizer:
         for doc in self.nlp.pipe(batch):
             doc_tokens.append(self.get_lemma_tokens(doc))
         return doc_tokens
+    
+
+    def tokenize(self, text):
+        return self.get_lemma_tokens(self.nlp(text))
