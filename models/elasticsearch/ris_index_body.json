@@ -10,7 +10,8 @@
     },
     "mappings": {
         "properties": {
-            "document_id": { "type": "keyword"  },
+            "document_id": { "type": "keyword" },
+            "gz": { "type": "keyword" },
             "passage_text": {
                 "type": "text",
                 "analyzer": "german",

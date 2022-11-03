@@ -4,6 +4,7 @@ query_reader:
   queries: queries.tsv
   collection_prob_dict_file: term_p.json
   kli_ratio: 0.4
+  filter: false
 
 
 tokenizer:
@@ -15,5 +16,5 @@ retrieval:
   runs_dir: runs/brise
   run_name: es
   size: 100
-  agg_size: 100
+  agg_size:
   rank_aggregation:
