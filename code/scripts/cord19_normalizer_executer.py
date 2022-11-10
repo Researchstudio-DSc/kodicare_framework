@@ -2,9 +2,10 @@
 a python script to execute the cord 19 normalizer for a document collection
 """
 
-import argparse
 import csv
 from multiprocessing import Queue, Process
+
+import hydra
 
 from code.preprocessing import cord19_normalizer
 from code.utils import io_util
@@ -34,10 +35,12 @@ def construct_paper_id__cord_uid__map(metadata_file):
     return paper_id__cord_uid__map
 
 
-def main(args):
-    input_dir = args.input_dir
-    output_dir = args.output_dir
-    metadata_path = args.metadata_path
+@hydra.main(version_base=None, config_path="../../conf", config_name="cord19_config")
+def main(cfg):
+    input_dir = io_util.join(cfg.config.root_dir, cfg.config.input_docs_dir)
+    output_dir = io_util.join(cfg.config.root_dir,
+                              io_util.join(cfg.config.working_dir, cfg.collection_normalization.out_dir))
+    metadata_path = io_util.join(cfg.config.root_dir, cfg.config.metadata_path)
 
     input_pdf_papers_queue = get_input_pdf_papers_queue(input_dir)
     paper_id__cord_uid__map = construct_paper_id__cord_uid__map(metadata_path)
@@ -64,13 +67,4 @@ def get_input_pdf_papers_queue(input_dir):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Given a directory of json cord19 articles, normalize of the articles'
-    )
-
-    parser.add_argument('input_dir', help='Input directory of json source from cord19 ')
-    parser.add_argument('output_dir', help='The output directory of the normalized data')
-    parser.add_argument('metadata_path', help='The metadata csv file of the cord 19 collection')
-
-    args = parser.parse_args()
-    main(args)
+    main()
