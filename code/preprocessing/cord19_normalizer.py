@@ -1,11 +1,10 @@
-import uuid
-
 from code.preprocessing import normalizer_interface
 from code.utils import io_util
 
 
 class Cord19Normalizer(normalizer_interface.NormalizerInterface):
     MAP_KEY__CORD19__PAPER_ID = "paper_id"
+    MAP_KEY__CORD19__CORD_UID = "cord_uid"
     MAP_KEY__CORD19__METADATA = "metadata"
     MAP_KEY__CORD19__TITLE = "title"
     MAP_KEY__CORD19__AUTHORS = "authors"
@@ -28,11 +27,11 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
     MAP_KEY__CORD19__END = "end"
     MAP_KEY__CORD19__REF_ID = "ref_id"
 
-    def normalize_input_doc(self, input_path, output_path):
+    def normalize_input_doc(self, input_path, output_path, metadata=None):
         input_article_map = io_util.read_json(input_path)
         normalized_article_map = {}
         # 1- set the document id
-        self.set_ids(input_article_map, normalized_article_map)
+        self.set_ids(input_article_map, normalized_article_map, metadata)
         # 2- read and set the metadata
         self.set_metadata(input_article_map, normalized_article_map)
         # 3- iterate through tht paragraph text and set the paragraph info - consider special normalization here and cleaning
@@ -40,11 +39,12 @@ class Cord19Normalizer(normalizer_interface.NormalizerInterface):
         # write to json
         io_util.write_json(output_path, normalized_article_map)
 
-    def set_ids(self, input_article_map, normalized_article_map):
-        # generate a unique id different from the original paper id
-        uid = str(uuid.uuid1())
-        normalized_article_map[self.MAP_KEY__UID] = uid
-        normalized_article_map[self.MAP_KEY__DOC_ID] = input_article_map[self.MAP_KEY__CORD19__PAPER_ID]
+    def set_ids(self, input_article_map, normalized_article_map, metadata):
+        # use the paper id as the doc and the unique id
+        paper_id = input_article_map[self.MAP_KEY__CORD19__PAPER_ID]
+        normalized_article_map[self.MAP_KEY__UID] = paper_id
+        normalized_article_map[self.MAP_KEY__DOC_ID] = paper_id
+        normalized_article_map[self.MAP_KEY__CORD19__CORD_UID] = metadata[paper_id] if paper_id in metadata else ""
 
     def set_metadata(self, input_article_map, normalized_article_map):
         normalized_article_map[self.MAP_KEY__METADATA] = {}
