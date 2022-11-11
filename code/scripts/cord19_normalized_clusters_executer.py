@@ -2,14 +2,15 @@
 A python script to set the configuration and run the clustering for normalized cord 19 dataset
 """
 
-from code.delta import normalized_data_clustering
-
+import en_core_sci_lg
+import hydra
+from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
 from spacy.lang.en.stop_words import \
     STOP_WORDS  # spacy and scispacy model usually cause conflict so the package version requirements must be set
-import en_core_sci_lg
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
-import argparse
+
+from code.delta import normalized_data_clustering
+from code.utils import io_util
 
 CUSTOM_STOP_WORDS = [
     'doi', 'preprint', 'copyright', 'peer', 'reviewed', 'org', 'https', 'et', 'al', 'author', 'figure',
@@ -18,9 +19,14 @@ CUSTOM_STOP_WORDS = [
 ]
 
 
-def main(args):
-    input_dir = args.input_dir
-    output_dir = args.output_dir
+@hydra.main(version_base=None, config_path="../../conf", config_name="cord19_config")
+def main(cfg):
+    input_dir = io_util.join(cfg.config.root_dir,
+                             io_util.join(cfg.config.working_dir, cfg.collection_normalization.out_dir))
+    output_dir = io_util.join(cfg.config.root_dir, io_util.join(cfg.config.working_dir, cfg.clustering.out_dir))
+
+    if not io_util.path_exits(output_dir):
+        io_util.mkdir(output_dir)
 
     stopwords = list(STOP_WORDS)
     for w in CUSTOM_STOP_WORDS:
@@ -39,12 +45,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Given a directory of json cord19 articles, normalize of the articles'
-    )
-
-    parser.add_argument('input_dir', help='Input directory of normalized data cord19 data')
-    parser.add_argument('output_dir', help='The working directory for the progress and the final clusters')
-
-    args = parser.parse_args()
-    main(args)
+    main()

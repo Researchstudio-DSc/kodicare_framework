@@ -7,3 +7,6 @@ config:
 
 collection_normalization:
   out_dir: cord-19_2020-07-16__pdf_json__normalized
+
+clustering:
+  out_dir: cord-19_2020-07-16__pdf_json__normalized__clusters
