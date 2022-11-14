@@ -43,24 +43,11 @@ def agg_paragraphs_recip(ranking, agg_size):
 
 
 @hydra.main(version_base=None, config_path="../../conf", config_name=None)
-def main(cfg : DictConfig):
+def main(cfg: DictConfig):
     ## QUERY READER
     queries_path = os.path.join(cfg.config.data_dir, cfg.evaluation.data.queries)
     query_reader = instantiate(cfg.evaluation.query_reader, queries_path=queries_path)
     queries = query_reader.read()
-
-    ## MOVE TO INDEX
-    
-    with open(os.path.join(cfg.config.data_dir, cfg.evaluation.data.cord_id_title), "r") as fp:
-        cord_id_title = json.load(fp)
-    
-    # mapping between IDs used in qrel_file and files in index
-    cord_uid_mapping = {}
-    for mapping in cord_id_title:
-        # paper_id field can contain multiple ids separated by ';'
-        paper_ids = [p.strip() for p in mapping['paper_id'].split(';')]
-        for paper_id in paper_ids:
-            cord_uid_mapping[paper_id] = mapping['cord_uid']
 
     ## INDEX
     index = instantiate(cfg.indexing.index, mode="load")
@@ -79,8 +66,7 @@ def main(cfg : DictConfig):
         raw_ranking = query.relevant_docs
         # get general mapping to cord ids
         for entry in raw_ranking:
-            paper_id = entry[Query.KEY_SOURCE]['doc_id']
-            cord_uid = cord_uid_mapping[paper_id]
+            cord_uid = entry[Query.KEY_SOURCE]['cord_uid']
             ranking.append((cord_uid, entry[Query.KEY_SCORE]))
         
         # rank aggregation

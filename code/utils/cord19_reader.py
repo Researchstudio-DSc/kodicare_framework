@@ -45,6 +45,7 @@ class CORD19Reader(BatchReader):
         document_obj = {
             "uid": document_data["uid"],
             "doc_id": document_data["doc_id"],
+            "cord_uid": document_data["cord_uid"],
             "title": document_data["metadata"]["title"],
             "abstract": abstract
         }
@@ -67,6 +68,7 @@ class CORD19ParagraphReader(BatchReader):
             document_obj = {
                 "uid": document_data["uid"],
                 "doc_id": document_data["doc_id"],
+                "cord_uid": document_data["cord_uid"],
                 "paragraph_id": f'{document_data["uid"]}_{idx}',
                 "paragraph_number": idx,
                 "title": document_data["metadata"]["title"],
