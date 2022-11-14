@@ -8,3 +8,4 @@ defaults:  # (these specify which config FILES to use)
 config:  # to be provided for each run
   out_dir: ???
   data_dir: ???
+  working_dir: ???
