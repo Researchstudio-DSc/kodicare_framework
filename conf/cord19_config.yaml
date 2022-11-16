@@ -14,4 +14,7 @@ clustering:
 delta:
   normalized_delta_path: cord19_normalized_delta.json #output path of document similarity
   base_retrieval_path: ??? #json file for baseline retrieval which is set per run
-  delta_reranking_path: ??? #json file for delta reranking which is set per run
+
+retrieval:
+  rerank_path: ??? #the json file of the reranking result which is set per run
+  run_name: ??? #run name which is set per each run

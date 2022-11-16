@@ -17,8 +17,8 @@ def main(cfg):
                                                                                cfg.delta.normalized_delta_path))
     base_retrieval_output_path = io_util.join(cfg.config.root_dir, io_util.join(cfg.config.working_dir,
                                                                                 cfg.delta.base_retrieval_path))
-    reranked_retrieval_output_path = io_util.join(cfg.config.root_dir, io_util.join(cfg.config.working_dir,
-                                                                                    cfg.delta.delta_reranking_path))
+    reranked_retrieval_output_path = io_util.join(cfg.config.root_dir, io_util.join(cfg.config.output_dir,
+                                                                                    cfg.retrieval.rerank_path))
 
     rerank_cluster_first = delta_reranking_clusters_first.DeltaRerankingClustersFirst(doc_clusters_path,
                                                                                       doc_pairs_similarity_path)
