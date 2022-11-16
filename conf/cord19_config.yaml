@@ -18,3 +18,4 @@ delta:
 retrieval:
   rerank_path: ??? #the json file of the reranking result which is set per run
   run_name: ??? #run name which is set per each run
+  qrel_id_field: cord_uid
