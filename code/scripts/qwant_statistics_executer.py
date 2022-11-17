@@ -15,7 +15,9 @@ def main(cfg):
     qwant_statistics = qwant_collection_statistics.QwantCollectionStatistics(s3_resource)
 
     for collection in cfg.collections:
-        print(collection, qwant_statistics.count_collection_documents('kodicare', collection))
+        print(collection)
+        print('#documents:', qwant_statistics.count_collection_documents('kodicare', collection))
+        print('#queries:', qwant_statistics.count_collection_queries('kodicare', collection))
 
 
 if __name__ == '__main__':
