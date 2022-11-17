@@ -1,0 +1,13 @@
+s3_config: #the values are to be filled by the user
+  endpoint_url: ???
+  region: ???
+  aws_access_key_id: ???
+  aws_secret_access_key: ???
+  api: ???
+
+collections:
+  - 2022-04_fr
+  - 2022-06_fr
+  - 2022-07_fr
+  - 2022-08_fr
+  - 2022-09_fr
