@@ -1,3 +1,4 @@
+from typing import Literal
 import faiss
 import pickle
 import numpy as np
@@ -12,17 +13,24 @@ class Index:
     # or
     # $ conda install -c pytorch faiss-gpu
 
-    def __init__(self, index_name) -> None:
+    def __init__(self, index_name, index_folder, vector_size, mode: Literal["create", "load"]="load") -> None:
         # keep track of: 
         # - <faiss_index> containing the document vectors
         # - <index> containing orig. document ids and other data
         self.index_name = index_name
+        self.index_folder = index_folder
+        self.vector_size = vector_size
         self.faiss_index = None
         self.index = None
+        self.mode = mode
+        if mode == "create":
+            self.create_index()
+        if mode == "load":
+            self.deserialize()
     
 
-    def create_index(self, vector_size):
-        self.faiss_index = faiss.IndexFlatIP(vector_size)
+    def create_index(self):
+        self.faiss_index = faiss.IndexFlatIP(self.vector_size)
         self.index = []
     
 
@@ -32,9 +40,9 @@ class Index:
             pickle.dump(self.index, fp)
     
 
-    def deserialize(self, folder: str):
-        self.faiss_index = faiss.read_index(os.path.join(folder, self.index_name+".faiss"))
-        with open(os.path.join(folder, self.index_name+".pickle"), "rb") as fp:
+    def deserialize(self):
+        self.faiss_index = faiss.read_index(os.path.join(self.index_folder, self.index_name+".faiss"))
+        with open(os.path.join(self.index_folder, self.index_name+".pickle"), "rb") as fp:
             self.index = pickle.load(fp)
     
 

@@ -1,0 +1,12 @@
+query_reader:
+  _target_: code.utils.cord19_reader.FAISSQueryReader
+  queries: topics-rnd5.xml
+
+
+retrieval:
+  runs_dir: runs/cord19
+  run_name: faiss_doc
+  size: 100
+  agg_size: 100
+  rank_aggregation: 
+    _target_: code.evaluation.eval.agg_remove_duplicates

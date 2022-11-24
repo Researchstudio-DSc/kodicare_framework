@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 from lxml import etree
 from code.indexing.index_util import Query
+from code.models.doc2vec import preprocess_document
 
 from hydra.utils import instantiate
 
@@ -63,6 +64,18 @@ class CORD19Reader(CORD19BatchReader):
 
     def to_string(self, document_obj):
         return f"{document_obj['title']}\n{document_obj['abstract']}"
+
+
+class FAISSReader(CORD19Reader):
+
+    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection, cord_id_title, batch_size)
+    
+
+    def read(self, document):
+        for uid, document_obj in super().read(document):
+            processed_doc = preprocess_document(document_obj, self)
+        return 
 
 
 class CORD19ParagraphReader(CORD19BatchReader):
