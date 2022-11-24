@@ -1,0 +1,20 @@
+
+query_reader:
+  _target_: code.utils.ris_breg_reader.ESQueryReader
+  queries: queries.tsv
+  collection_prob_dict_file: term_p.json
+  kli_ratio: 0.4
+  filter: false
+
+
+tokenizer:
+  _target_: code.preprocessing.brise_tokenizer.RisBregTokenizer
+  spacy_model_name: de_core_news_md
+
+
+retrieval:
+  runs_dir: runs/brise
+  run_name: es
+  size: 100
+  agg_size:
+  rank_aggregation:

@@ -1,9 +1,6 @@
-data:
-  queries: topics-rnd5.xml
-  cord_id_title: cord_id_title.json
-
 query_reader:
   _target_: code.utils.cord19_reader.ESQueryReader
+  queries: topics-rnd5.xml
   index_fields: 
     - title
     - abstract

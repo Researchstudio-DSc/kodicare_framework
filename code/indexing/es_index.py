@@ -112,8 +112,8 @@ class Index:
         """
         for batch_data in doc_iterator:
             data_json = ""
-            for doc_id, doc_source in batch_data:
-                action_and_meta_data = {"index": {"_index": self.index_name, "_id": doc_id}}
+            for document_id, doc_source in batch_data:
+                action_and_meta_data = {"index": {"_index": self.index_name, "_id": document_id}}
                 data_json += json.dumps(action_and_meta_data) + "\n"
                 data_json += json.dumps(doc_source) + "\n"
             headers = {

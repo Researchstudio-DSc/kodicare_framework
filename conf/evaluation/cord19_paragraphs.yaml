@@ -1,9 +1,6 @@
-data:
-  queries: topics-rnd5.xml
-  cord_id_title: cord_id_title.json
-
 query_reader:
   _target_: code.utils.cord19_reader.ESQueryReader
+  queries: topics-rnd5.xml
   index_fields: 
     - title
     - section
@@ -12,6 +9,6 @@ query_reader:
 retrieval:
   run_name: es_paragraphs
   size: 1000
-  agg_size: 1000
+  agg_size: 100
   rank_aggregation:
     _target_: code.evaluation.eval.agg_paragraphs_recip
