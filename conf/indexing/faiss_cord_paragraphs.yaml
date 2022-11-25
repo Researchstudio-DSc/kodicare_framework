@@ -1,0 +1,10 @@
+index:
+  _target_: code.indexing.faiss_index.Index
+  index_name: faiss_cord_paragraphs
+  vector_size: 300
+
+collection_reader:
+  _target_: code.utils.cord19_reader.FAISSParagraphReader
+  collection: cord-19_2020-07-16__pdf_json__normalized
+  batch_size: 16384
+  cord_id_title: cord_id_title.json

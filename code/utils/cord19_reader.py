@@ -4,6 +4,8 @@ from tqdm import tqdm
 from lxml import etree
 from code.indexing.index_util import Query
 from code.models.doc2vec import preprocess_document
+from gensim.models.doc2vec import Doc2Vec
+from gensim.utils import simple_preprocess
 
 from hydra.utils import instantiate
 
@@ -66,18 +68,6 @@ class CORD19Reader(CORD19BatchReader):
         return f"{document_obj['title']}\n{document_obj['abstract']}"
 
 
-class FAISSReader(CORD19Reader):
-
-    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
-        super().__init__(data_dir, collection, cord_id_title, batch_size)
-    
-
-    def read(self, document):
-        for uid, document_obj in super().read(document):
-            processed_doc = preprocess_document(document_obj, self)
-        return 
-
-
 class CORD19ParagraphReader(CORD19BatchReader):
 
     def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
@@ -104,6 +94,52 @@ class CORD19ParagraphReader(CORD19BatchReader):
 
     def to_string(self, document_obj):
         return f"{document_obj['title']}\n{document_obj['section']}\n{document_obj['paragraph_text']}"
+
+
+MODEL_FOLDER = "./models/doc2vec"
+
+class FAISSReader(CORD19Reader):
+
+    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection, cord_id_title, batch_size)
+        #self.model = instantiate(model_cfg)
+        model_path = os.path.join(MODEL_FOLDER, "paragraphs_basic")
+        self.model = Doc2Vec.load(model_path)
+    
+
+    def read(self, document):
+        batch_data = []
+        for uid, document_obj in super().read(document):
+            processed_doc = preprocess_document(document_obj, self)
+            doc_vector = self.model.infer_vector(processed_doc)
+            new_document_object = {
+                "uid": document_obj["uid"],
+                "document_id": document_obj["document_id"]
+            }
+            batch_data.append((uid, new_document_object, doc_vector))
+        return batch_data
+
+
+class FAISSParagraphReader(CORD19ParagraphReader):
+
+    def __init__(self, data_dir=None, collection=None, cord_id_title=None, batch_size: int = 1024) -> None:
+        super().__init__(data_dir, collection, cord_id_title, batch_size)
+        #self.model = instantiate(model_cfg)
+        model_path = os.path.join(MODEL_FOLDER, "paragraphs_basic")
+        self.model = Doc2Vec.load(model_path)
+    
+
+    def read(self, document):
+        batch_data = []
+        for uid, document_obj in super().read(document):
+            processed_doc = preprocess_document(document_obj, self)
+            doc_vector = self.model.infer_vector(processed_doc)
+            new_document_object = {
+                "uid": document_obj["uid"],
+                "document_id": document_obj["document_id"]
+            }
+            batch_data.append((uid, new_document_object, doc_vector))
+        return batch_data
 
 
 class ESQueryReader:
@@ -143,9 +179,11 @@ class ESQueryReader:
 
 class FAISSQueryReader:
 
-    def __init__(self, queries_path, model_cfg) -> None:
-        self.queries_path = queries_path
-        self.model = instantiate(model_cfg)
+    def __init__(self, queries, data_dir) -> None:
+        self.queries_path = os.path.join(data_dir, queries)
+        #self.model = instantiate(model_cfg)
+        model_path = os.path.join(MODEL_FOLDER, "paragraphs_basic")
+        self.model = Doc2Vec.load(model_path)
     
 
     def read(self):
@@ -158,8 +196,12 @@ class FAISSQueryReader:
             question = topic[1]
             assert query.tag == "query"
             assert question.tag == "question"
-            query_vector = self.model.get_vector(f"{query.text} {question.text}")
+            #query_vector = self.model.get_vector(f"{query.text} {question.text}")
+            processed_doc = simple_preprocess(f"{query.text} {question.text}")
+            query_vector = self.model.infer_vector(processed_doc)
             queries.append(Query(
                 id=idx,
                 data=query_vector
             ))
+        return queries
+    

@@ -42,7 +42,10 @@ def main(cfg : DictConfig):
     queries = query_reader.read()
 
     ## INDEX
-    index = instantiate(cfg.indexing.index, mode="load")
+    if cfg.config.index_dir:
+        index = instantiate(cfg.indexing.index, mode="load", index_dir=cfg.config.index_dir)
+    else:
+        index = instantiate(cfg.indexing.index, mode="load")
 
     # RANKING
     ranking_data = index.rank(queries=queries, size=cfg.evaluation.retrieval.size, query_builder=query_reader)

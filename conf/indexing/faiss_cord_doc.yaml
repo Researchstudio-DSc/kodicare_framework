@@ -1,11 +1,10 @@
 index:
   _target_: code.indexing.faiss_index.Index
-  index_name: kodicare_test
-  index_folder: /home/tfink/data/kodicare/faiss_index
+  index_name: faiss_cord_doc
   vector_size: 300
 
 collection_reader:
-  _target_: code.utils.cord19_reader.CORD19Reader
+  _target_: code.utils.cord19_reader.FAISSReader
   collection: cord-19_2020-07-16__pdf_json__normalized
   batch_size: 1024
   cord_id_title: cord_id_title.json
