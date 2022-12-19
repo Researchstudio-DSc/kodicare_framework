@@ -10,6 +10,7 @@
     },
     "mappings": {
         "properties": {
+            "document_id": { "type": "keyword"  },
             "uid": { "type": "keyword"  },
             "doc_id": { "type": "keyword"  },
             "paragraph_id": { "type": "keyword"  },
