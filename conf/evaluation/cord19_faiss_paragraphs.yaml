@@ -1,14 +1,11 @@
 query_reader:
-  _target_: code.utils.cord19_reader.ESQueryReader
+  _target_: code.utils.cord19_reader.FAISSQueryReader
   queries: topics-rnd5.xml
-  index_fields: 
-    - title
-    - section
-    - paragraph_text
+
 
 retrieval:
   runs_dir: runs/cord19
-  run_name: es_paragraphs
+  run_name: faiss_paragraphs
   size: 1000
   agg_size: 100
   rank_aggregation:

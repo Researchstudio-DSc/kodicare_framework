@@ -6,6 +6,6 @@ index:
 
 collection_reader:
   _target_: code.utils.cord19_reader.CORD19ParagraphReader
+  collection: cord-19_2020-07-16__pdf_json__normalized
   batch_size: 16384
-
-document_folder: cord-19_2020-07-16__pdf_json__normalized
+  cord_id_title: cord_id_title.json

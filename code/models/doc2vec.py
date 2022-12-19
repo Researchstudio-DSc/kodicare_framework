@@ -42,13 +42,13 @@ class Doc2VecModel(BaseModel):
 
     def __init__(self, model_folder, model_name):
         super().__init__()
-        model_path = os.path.join(MODEL_FOLDER, args.model_name)
+        model_path = os.path.join(model_folder, model_name)
         self.model = Doc2Vec.load(model_path)
     
 
     def get_vector(self, query_text):
         processed_doc = simple_preprocess(query_text)
-        query_vector = self. model.infer_vector(processed_doc)
+        query_vector = self.model.infer_vector(processed_doc)
         return query_vector
         
 
