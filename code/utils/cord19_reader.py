@@ -58,7 +58,6 @@ class CORD19Reader(CORD19BatchReader):
             "document_id": cord_uid,
             "uid": document["uid"],
             "doc_id": document["doc_id"],
-            "cord_uid": document["cord_uid"],
             "title": document["metadata"]["title"],
             "abstract": abstract
         }
@@ -83,7 +82,6 @@ class CORD19ParagraphReader(CORD19BatchReader):
                 "document_id": cord_uid,
                 "uid": document["uid"],
                 "doc_id": document["doc_id"],
-                "cord_uid": document["cord_uid"],
                 "paragraph_id": f'{document["uid"]}_{idx}',
                 "paragraph_number": idx,
                 "title": document["metadata"]["title"],

@@ -73,12 +73,12 @@ def main(cfg: DictConfig):
         
         for rank, (document_id, score) in enumerate(agg_ranking):
             run_fp.write(f"{q_id} Q0 {document_id} {rank} {score:.4f} {cfg.evaluation.retrieval.run_name}\n")
-            ranked_relevant_docs.append({MAP_KEY__SCORE: score,
-                                         MAP_KEY__INFO: {'document_id': document_id}})
-        query_relevant_docs_map.append({MAP_KEY__QUERY_ID: str(q_i + 1), MAP_KEY__RELEVANT_DOCS: ranked_relevant_docs})
+        #     ranked_relevant_docs.append({MAP_KEY__SCORE: score,
+        #                                  MAP_KEY__INFO: {'document_id': document_id}})
+        # query_relevant_docs_map.append({MAP_KEY__QUERY_ID: str(q_i + 1), MAP_KEY__RELEVANT_DOCS: ranked_relevant_docs})
     run_fp.close()
-    io_util.write_json(io_util.join(cfg.config.working_dir, cfg.evaluation.retrieval.run_name + '.json'),
-                       query_relevant_docs_map)
+    # io_util.write_json(io_util.join(cfg.config.working_dir, cfg.evaluation.retrieval.run_name + '.json'),
+    #                    query_relevant_docs_map)
 
 
 if __name__ == "__main__":
