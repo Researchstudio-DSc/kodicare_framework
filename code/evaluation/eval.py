@@ -1,12 +1,10 @@
-import json
-from lxml import etree
 import hydra
-from omegaconf import DictConfig, OmegaConf
-import os
-
 from hydra.utils import instantiate, call
+from omegaconf import DictConfig
 
 from code.indexing.index_util import Query
+from code.utils import io_util
+
 
 
 def agg_remove_duplicates(ranking, agg_size):
@@ -22,7 +20,8 @@ def agg_remove_duplicates(ranking, agg_size):
 
 
 def reciprocal_rank_score(rank):
-    return 1/(10+rank)
+    return 1 / (10 + rank)
+
 
 def agg_paragraphs_recip(ranking, agg_size):
     # rerank by calculating a score based on the rank positions of a
@@ -36,7 +35,7 @@ def agg_paragraphs_recip(ranking, agg_size):
 
 
 @hydra.main(version_base=None, config_path="../../conf", config_name=None)
-def main(cfg : DictConfig):
+def main(cfg: DictConfig):
     ## QUERY READER
     query_reader = instantiate(cfg.evaluation.query_reader, data_dir=cfg.config.data_dir)
     queries = query_reader.read()
@@ -50,10 +49,11 @@ def main(cfg : DictConfig):
     # RANKING
     ranking_data = index.rank(queries=queries, size=cfg.evaluation.retrieval.size, query_builder=query_reader)
 
-    run_file = os.path.join(cfg.config.out_dir, cfg.evaluation.retrieval.run_name)
+    run_file = io_util.join(cfg.config.out_dir, cfg.evaluation.retrieval.run_name)
     run_fp = open(run_file, "w")
 
     # TODO: support different output formats
+    query_relevant_docs_map = []
     for query, query in zip(queries, ranking_data):
         q_id = query.id
         rank = 0
@@ -73,8 +73,12 @@ def main(cfg : DictConfig):
         
         for rank, (document_id, score) in enumerate(agg_ranking):
             run_fp.write(f"{q_id} Q0 {document_id} {rank} {score:.4f} {cfg.evaluation.retrieval.run_name}\n")
+            ranked_relevant_docs.append({MAP_KEY__SCORE: score,
+                                         MAP_KEY__INFO: {'document_id': document_id}})
+        query_relevant_docs_map.append({MAP_KEY__QUERY_ID: str(q_i + 1), MAP_KEY__RELEVANT_DOCS: ranked_relevant_docs})
     run_fp.close()
-    
+    io_util.write_json(io_util.join(cfg.config.working_dir, cfg.evaluation.retrieval.run_name + '.json'),
+                       query_relevant_docs_map)
 
 
 if __name__ == "__main__":

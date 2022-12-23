@@ -26,7 +26,7 @@ class NormalizerInterface:
 
     DOC_TYPE_SCIENTIFIC_PAPER = "scientific paper"
 
-    def normalize_input_doc(self, input_path, output_path):
+    def normalize_input_doc(self, input_path, output_path, metadata=None):
         """
         The input path type will depend on the test collection for example it may be pdf, json ...
         This function is implemented according to the test collection

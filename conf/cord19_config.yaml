@@ -1,0 +1,21 @@
+config:
+  root_dir: ??? # the root directory of the whole data set base
+  input_docs_dir: cord19/cord-19_2020-07-16/document_parses/pdf_json #original json files for cord19 doc collection path
+  metadata_path: cord19/cord-19_2020-07-16/metadata.csv #the full path of the metadate csv file
+  working_dir: cord19/cord-19_2020-07-16/working #the directory of intermediate processing and results
+  output_dir: cord19/cord-19_2020-07-16/output #the output directory of retrieval results
+
+collection_normalization:
+  out_dir: cord-19_2020-07-16__pdf_json__normalized
+
+clustering:
+  out_dir: cord-19_2020-07-16__pdf_json__normalized__clusters
+
+delta:
+  normalized_delta_path: cord19_normalized_delta.json #output path of document similarity
+  base_retrieval_path: ??? #json file for baseline retrieval which is set per run
+
+retrieval:
+  rerank_path: ??? #the json file of the reranking result which is set per run
+  run_name: ??? #run name which is set per each run
+  qrel_id_field: cord_uid

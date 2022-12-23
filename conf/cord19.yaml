@@ -7,5 +7,6 @@ defaults:  # (these specify which config FILES to use)
 # Direct PARAMETER setting
 config:  # to be provided for each run
   out_dir: ???
+  working_dir: ???
   index_dir: ???
   data_dir: ???
