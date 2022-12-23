@@ -32,7 +32,7 @@ class RISBatchReader(CollectionReader):
         batch = []
         # go through all documents and return the documents as a batch of documents
         with open(self.collection_path, 'r') as fp:
-            collection = csv.reader(fp, delimiter="\t", quotechar='"')
+            collection = csv.reader(fp, delimiter="\t", quoting=csv.QUOTE_NONE)
             for document in tqdm(collection):
                 index_document = self.read(document)
                 batch.append(index_document)
@@ -47,7 +47,7 @@ class RISBatchReader(CollectionReader):
     def iterate_single(self):
         # go through all documents and return the documents as a batch of documents
         with open(self.collection_path, 'r') as fp:
-            collection = csv.reader(fp, delimiter="\t", quotechar='"')
+            collection = csv.reader(fp, delimiter="\t", quoting=csv.QUOTE_NONE)
             for document in tqdm(collection):
                 index_document = self.read(document)
                 yield index_document
@@ -89,19 +89,25 @@ class ESQueryReader:
             queries_tsv = csv.reader(fp, delimiter="\t", quotechar='"')
             queries = []
             for q_id, q_text, target_gz in queries_tsv:
-                q_tokens = self.tokenizer.tokenize(q_text)
-                q_token_counts = get_token_counts(q_tokens)
-                q_token_probs = kli_divergence(
-                    terms=set(q_tokens),
-                    document_counts=q_token_counts, 
-                    collection_prob_dict=self.collection_prob_dict)
-                
-                select_tokens_count = int(len(q_token_probs)*self.kli_ratio)
-                q_token_probs = q_token_probs[:select_tokens_count]
-                queries.append(Query(
-                    id=q_id,
-                    data=(" ".join([t for t, p in q_token_probs]), target_gz)
-                ))
+                if self.kli_ratio:
+                    q_tokens = self.tokenizer.tokenize(q_text)
+                    q_token_counts = get_token_counts(q_tokens)
+                    q_token_probs = kli_divergence(
+                        terms=set(q_tokens),
+                        document_counts=q_token_counts, 
+                        collection_prob_dict=self.collection_prob_dict)
+                    
+                    select_tokens_count = int(len(q_token_probs)*self.kli_ratio)
+                    q_token_probs = q_token_probs[:select_tokens_count]
+                    queries.append(Query(
+                        id=q_id,
+                        data=(" ".join([t for t, p in q_token_probs]), target_gz)
+                    ))
+                else:
+                    queries.append(Query(
+                        id=q_id,
+                        data=(q_text, target_gz)
+                    ))
         return queries
     
 

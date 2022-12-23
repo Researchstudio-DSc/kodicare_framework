@@ -1,10 +1,10 @@
 
 query_reader:
   _target_: code.utils.ris_breg_reader.ESQueryReader
-  queries: queries.tsv
+  queries: manual_queries.tsv
   collection_prob_dict_file: term_p.json
-  kli_ratio: 0.4
-  filter: false
+  kli_ratio: null
+  filter: true
 
 
 tokenizer:
