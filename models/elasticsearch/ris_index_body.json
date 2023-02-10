@@ -16,6 +16,11 @@
                 "type": "text",
                 "analyzer": "german",
                 "similarity": "the_sim"
+            },
+            "passage_text_tokenized": {
+                "type": "text",
+                "analyzer": "german",
+                "similarity": "the_sim"
             }
         }
     }

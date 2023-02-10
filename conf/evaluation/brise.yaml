@@ -1,9 +1,11 @@
 
 query_reader:
   _target_: code.utils.ris_breg_reader.ESQueryReader
-  queries: manual_queries.tsv
+  queries: queries.tsv
   collection_prob_dict_file: term_p.json
-  kli_ratio: null
+  kw_extractor: plm
+  query_term_ratio: 0.9
+  smooth_factor: 0.2
   filter: true
 
 

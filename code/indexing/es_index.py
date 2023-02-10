@@ -129,6 +129,7 @@ class Index:
         """
         data_json = ""
         for query in queries:
+            #print(query.data)
             q_header = {}
             query_data = query_builder.build(query.data, size=size)
             data_json += json.dumps(q_header) + "\n"
