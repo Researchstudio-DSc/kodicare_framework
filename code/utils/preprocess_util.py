@@ -1,8 +1,10 @@
 """
 contain functions for text preporcessing
 """
-from langdetect import detect
 from langdetect import DetectorFactory
+from langdetect import detect
+from nltk import tokenize
+from nltk.corpus import stopwords
 
 
 def detect_text_language(text):
@@ -23,6 +25,22 @@ def detect_text_language(text):
             lang = ""
             pass
     return lang
+
+
+def get_stopwords(language='english'):
+    return set(stopwords.words(language))
+
+
+def word_tokenize(text):
+    return [word.lower() for word in tokenize.word_tokenize(text)]
+
+
+def remove_stopwords(tokens, stopwords):
+    return [word for word in tokens if word not in stopwords]
+
+
+def remove_punctuation(tokens, punctuations):
+    return [word for word in tokens if word not in punctuations]
 
 
 def spacy_tokenizer(sentence, parser, stopwords, punctuations):
