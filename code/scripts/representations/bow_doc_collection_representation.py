@@ -8,6 +8,8 @@ example usage:
 python -m code.scripts.representations.bow_doc_collection_representation --config-name cord19_config config.root_dir='/root/path/to/collection'
 """
 
+from multiprocessing import Queue, Process
+
 import hydra
 import numpy as np
 import string
@@ -45,9 +47,28 @@ def construct_vocab(docs_text, lang):
 
 
 def represent_docs(doc_ids, docs_text, bow_instance, out_dir):
-    for (index, text) in enumerate(docs_text):
-        doc_id = doc_ids[index]
-        print("Vectors for", doc_id)
+    docs_id_queue = Queue()
+    for doc_id in doc_ids:
+        docs_id_queue.put(doc_id)
+    docs_text_queue = Queue()
+    for text in docs_text:
+        docs_text_queue.put(text)
+
+    procs = [Process(target=represent_docs_worker, args=[i, docs_id_queue, docs_text_queue, bow_instance, out_dir])
+             for i in range(6)]
+    for p in procs:
+        p.start()
+    for p in procs:
+        p.join()
+
+
+def represent_docs_worker(proc_num, docs_id_queue, docs_text_queue, bow_instance, out_dir):
+    while True:
+        if docs_id_queue.empty():
+            break
+        doc_id = docs_id_queue.get()
+        text = docs_text_queue.get()
+        print(proc_num, "Vectors for", doc_id)
         vector = bow_instance.represent_text(text)
         io_util.write_pickle(np.array(vector), io_util.join(out_dir, str(doc_id) + '_vec.pkl'))
 
