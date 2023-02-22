@@ -6,6 +6,8 @@ from langdetect import detect
 from nltk import tokenize
 from nltk.corpus import stopwords
 
+LANGUAGE_CODE_LANGUAGE__MAP = {'en': 'english', 'fr': 'french', 'de': 'german'}
+
 
 def detect_text_language(text):
     # set seed

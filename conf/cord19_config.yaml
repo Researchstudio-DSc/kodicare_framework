@@ -4,9 +4,14 @@ config:
   metadata_path: cord19/cord-19_2020-07-16/metadata.csv #the full path of the metadate csv file
   working_dir: cord19/cord-19_2020-07-16/working #the directory of intermediate processing and results
   output_dir: cord19/cord-19_2020-07-16/output #the output directory of retrieval results
+  lang: 'en'
 
 collection_normalization:
   out_dir: cord-19_2020-07-16__pdf_json__normalized
+
+representation:
+  bow_working_dir: cord-19_2020-07-16__bow_working
+  bow_output: cord-19_2020-07-16__bow_out
 
 clustering:
   out_dir: cord-19_2020-07-16__pdf_json__normalized__clusters

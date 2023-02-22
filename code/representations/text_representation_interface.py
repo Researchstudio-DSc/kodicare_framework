@@ -1,5 +1,4 @@
 class TextRepresentationInterface:
-    LANGUAGE_CODE_LANGUAGE__MAP = {'en': 'english', 'fr': 'french', 'de': 'german'}
 
     def __init__(self, lang='en'):
         """
