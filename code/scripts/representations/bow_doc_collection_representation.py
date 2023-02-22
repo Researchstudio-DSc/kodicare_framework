@@ -9,6 +9,7 @@ python -m code.scripts.representations.bow_doc_collection_representation --confi
 """
 
 import hydra
+import numpy as np
 import string
 
 from code.preprocessing import normalizer_interface
@@ -32,26 +33,30 @@ def construct_docs_text(input_dir, docs):
 
 
 def construct_vocab(docs_text, lang):
-    vocab = []
+    vocab = set()
     stopwords = preprocess_util.get_stopwords(language=preprocess_util.LANGUAGE_CODE_LANGUAGE__MAP[lang])
     for text in docs_text:
         tokens = preprocess_util.word_tokenize(text)
         tokens = preprocess_util.remove_stopwords(tokens, stopwords)
         tokens = preprocess_util.remove_punctuation(tokens, string.punctuation)
 
-        vocab = vocab + list(set(tokens))
-    return vocab
+        vocab.update(tokens)
+    return list(vocab)
 
 
 def represent_docs(doc_ids, docs_text, bow_instance, out_dir):
-    docs_vectors = []
     for (index, text) in enumerate(docs_text):
         doc_id = doc_ids[index]
         print("Vectors for", doc_id)
         vector = bow_instance.represent_text(text)
-        io_util.write_pickle(vector, io_util.join(out_dir, str(doc_id) + '_vec.pkl'))
-        docs_vectors.append(vector)
-    return docs_vectors
+        io_util.write_pickle(np.array(vector), io_util.join(out_dir, str(doc_id) + '_vec.pkl'))
+
+
+def represent_doc_collection(doc_ids, vector_len, out_dir):
+    vector = np.zeros(vector_len)
+    for doc_id in doc_ids:
+        vector = np.add(vector, io_util.read_pickle(io_util.join(out_dir, str(doc_id) + '_vec.pkl')))
+    return vector
 
 
 @hydra.main(version_base=None, config_path="../../../conf", config_name=None)
@@ -76,11 +81,11 @@ def main(cfg):
     bow_instance = bow_representation.BOWRepresentation(vocab, lang=lang)
     print("2- Generating vector representation for each document")
     print("-----------------------------------------------------")
-    docs_vectors = represent_docs(docs_ids, docs_text, bow_instance, working_dir)
+    represent_docs(docs_ids, docs_text, bow_instance, working_dir)
     print()
     print("3- Generating vector representation for each documents collection")
     print("-----------------------------------------------------------------")
-    docs_representation = [sum(x) for x in zip(*docs_vectors)]
+    docs_representation = represent_doc_collection(docs_ids, len(vocab), working_dir)
     io_util.write_text_to_file(io_util.join(working_dir, out_prefix + '_vec.txt'), str(docs_representation))
     io_util.write_text_to_file(io_util.join(working_dir, out_prefix + '_vocab.txt'), str(vocab))
 
