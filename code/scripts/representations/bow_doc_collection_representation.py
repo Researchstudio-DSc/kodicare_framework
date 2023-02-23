@@ -107,7 +107,7 @@ def main(cfg):
     print("3- Generating vector representation for each documents collection")
     print("-----------------------------------------------------------------")
     docs_representation = represent_doc_collection(docs_ids, len(vocab), working_dir)
-    io_util.write_text_to_file(io_util.join(working_dir, out_prefix + '_vec.txt'), str(docs_representation))
+    io_util.write_pickle(docs_representation, io_util.join(working_dir, out_prefix + '_vec.pkl'))
     io_util.write_text_to_file(io_util.join(working_dir, out_prefix + '_vocab.txt'), str(vocab))
 
 
