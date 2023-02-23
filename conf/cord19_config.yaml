@@ -12,6 +12,9 @@ collection_normalization:
 representation:
   bow_working_dir: cord-19_2020-07-16__bow_working
   bow_output: cord-19_2020-07-16__bow_out
+  tfidf_working_dir: cord-19_2020-07-16__tfidf_working
+  tfidf_output: cord-19_2020-07-16__tfidf_out
+
 
 clustering:
   out_dir: cord-19_2020-07-16__pdf_json__normalized__clusters
