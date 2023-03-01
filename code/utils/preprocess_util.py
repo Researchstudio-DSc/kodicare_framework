@@ -5,6 +5,7 @@ from langdetect import DetectorFactory
 from langdetect import detect
 from nltk import tokenize
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer, SnowballStemmer
 
 LANGUAGE_CODE_LANGUAGE__MAP = {'en': 'english', 'fr': 'french', 'de': 'german'}
 
@@ -45,6 +46,17 @@ def remove_punctuation(tokens, punctuations):
     return [word for word in tokens if word not in punctuations]
 
 
+def lemmatize_tokens(tokens, language='english'):
+    if language != 'english':
+        return tokens
+    return [WordNetLemmatizer().lemmatize(token, pos='v') for token in tokens]
+
+
+def stem_tokens(tokens, language='english'):
+    stemmer = SnowballStemmer(language)
+    return [stemmer.stem(token) for token in tokens]
+
+
 def spacy_tokenizer(sentence, parser, stopwords, punctuations):
     mytokens = parser(sentence)
     mytokens = [word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in mytokens]
@@ -55,3 +67,14 @@ def spacy_tokenizer(sentence, parser, stopwords, punctuations):
 
 def vectorize_text(text, vectorizer):
     return vectorizer.fit_transform(text)
+
+def execute_common_preprocess_pipeline(text, punctuation, language='english'):
+    stopwords = get_stopwords(language=language)
+
+    tokens = word_tokenize(text)
+    tokens = remove_stopwords(tokens, stopwords)
+    tokens = remove_punctuation(tokens, punctuation)
+    tokens = lemmatize_tokens(tokens, language=language)
+    tokens = stem_tokens(tokens, language=language)
+
+    return tokens

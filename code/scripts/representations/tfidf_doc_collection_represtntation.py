@@ -39,11 +39,9 @@ def construct_docs_text(input_dir, docs):
 def construct_vocab(docs_text, lang):
     vocab = set()
     doc_text_tokens = []
-    stopwords = preprocess_util.get_stopwords(language=preprocess_util.LANGUAGE_CODE_LANGUAGE__MAP[lang])
     for text in docs_text:
-        tokens = preprocess_util.word_tokenize(text)
-        tokens = preprocess_util.remove_stopwords(tokens, stopwords)
-        tokens = preprocess_util.remove_punctuation(tokens, string.punctuation)
+        tokens = preprocess_util.execute_common_preprocess_pipeline(
+            text, string.punctuation, language=preprocess_util.LANGUAGE_CODE_LANGUAGE__MAP[lang])
 
         vocab.update(tokens)
         doc_text_tokens.append(tokens)

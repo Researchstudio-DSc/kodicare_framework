@@ -44,11 +44,8 @@ class TFIDFRepresentation(text_representation_interface.TextRepresentationInterf
         self.n_docs = n_docs
 
     def represent_text(self, text):
-        stopwords = preprocess_util.get_stopwords(language=preprocess_util.LANGUAGE_CODE_LANGUAGE__MAP[self.lang])
-
-        tokens = preprocess_util.word_tokenize(text)
-        tokens = preprocess_util.remove_stopwords(tokens, stopwords)
-        tokens = preprocess_util.remove_punctuation(tokens, string.punctuation)
+        tokens = preprocess_util.execute_common_preprocess_pipeline(
+            text, string.punctuation, language=preprocess_util.LANGUAGE_CODE_LANGUAGE__MAP[self.lang])
 
         tfidf = calculate_tfidf(tokens, self.df, self.n_docs)
         return convert_tfidf_to_vector(tfidf, self.vocab)
