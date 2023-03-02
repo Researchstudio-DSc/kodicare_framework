@@ -1,12 +1,12 @@
 # FILES
 defaults:  # (these specify which config FILES to use)
   - _self_
-  - evaluation: cord19_faiss_paragraphs
-  - indexing: faiss_cord_paragraphs
+  - evaluation: cord19_doc
+  - indexing: es_kodicare_test
 
 # Direct PARAMETER setting
 config:  # to be provided for each run
   out_dir: ???
   working_dir: ???
-  index_dir: ???
+  index_dir: 
   data_dir: ???
