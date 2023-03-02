@@ -30,6 +30,8 @@ Project Organization
     │   |── evaluation                         <- Scripts to evaluate the system performance at different stages
     |   |
     │   └── analysis                           <- Scripts to analyze the evaluation resutls including visulization.
+    |   |
+    │   └── representations                    <- Scripts to represent text.
 
 General Requirements
 ---
