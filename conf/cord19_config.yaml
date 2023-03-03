@@ -27,3 +27,13 @@ retrieval:
   rerank_path: ??? #the json file of the reranking result which is set per run
   run_name: ??? #run name which is set per each run
   qrel_id_field: cord_uid
+
+dtc: # dynamic test collection information
+  evaluation_splits_dir: cord19/cord-19_2020-07-16/dtc #the output directory of retrieval results
+  evaluation_splits_path: ??? # hdf5 file of samples and evaluation data.
+  docs_full_info_path: TREC-COVID_date_p2.csv
+  docno_date_path: TREC-COVID_docno_date.csv
+  out_in_fields_map: {"docno": 'cord_uid', "date": 'date_final'}
+  dtc_evolving_cont_ids_path: TREC-COVID_dtc_evolving_cont_corduids.pkl
+  dtc_evolving_ids_path: TREC-COVID_dtc_evolving_corduids.pkl
+  dtc_random_ids_path: TREC-COVID_dtc_random_corduids.pkl
