@@ -32,6 +32,8 @@ Project Organization
     │   └── analysis                           <- Scripts to analyze the evaluation resutls including visulization.
     |   |
     │   └── representations                    <- Scripts to represent text.
+    |   |
+    │   └── data                    <- Scripts to download or generate data.
 
 General Requirements
 ---

@@ -34,3 +34,6 @@ dtc: # dynamic test collection information
   docs_full_info_path: TREC-COVID_date_p2.csv
   docno_date_path: TREC-COVID_docno_date.csv
   out_in_fields_map: {"docno": 'cord_uid', "date": 'date_final'}
+  dtc_evolving_cont_ids_path: TREC-COVID_dtc_evolving_cont_corduids.pkl
+  dtc_evolving_ids_path: TREC-COVID_dtc_evolving_corduids.pkl
+  dtc_random_ids_path: TREC-COVID_dtc_random_corduids.pkl
