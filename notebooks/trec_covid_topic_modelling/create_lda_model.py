@@ -3,7 +3,7 @@ import os
 import sys
 import gensim
 from gensim import models
-import numpy as np
+import hydra
 csv.field_size_limit(sys.maxsize)
 
 f_tokenized_path = "/home/tfink/data/kodicare/trec-covid/dtc_evolving/0.csv"
@@ -33,34 +33,38 @@ def read_tokenized(path, batch_size = None):
             yield batch
 
 
-processed_docs = list(read_tokenized(f_tokenized_path, batch_size=None))
-dictionary = gensim.corpora.Dictionary(processed_docs+processed_docs_comp)
-dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
 
 
-def create_corpus(docs):
+
+def create_corpus(docs, dictionary):
     bow_corpus = [dictionary.doc2bow(doc) for doc in docs]
     tfidf = models.TfidfModel(bow_corpus)
     corpus_tfidf = tfidf[bow_corpus]
     return corpus_tfidf
 
 
-corpus = create_corpus(processed_docs)
+@hydra.main(version_base=None, config_path="./conf", config_name=None)
+def main(cfg):
+    processed_docs = list(read_tokenized(cfg.tokenized_path, batch_size=cfg.lda.batch_size))
+    dictionary = gensim.corpora.Dictionary(processed_docs)
+    dictionary.filter_extremes(no_below=cfg.lda.filter.no_below, 
+                               no_above=cfg.lda.filter.no_above, 
+                               keep_n=cfg.lda.filter.keep_n)
+    
+    corpus = create_corpus(processed_docs, dictionary)
 
-lda_model_tfidf = gensim.models.LdaMulticore(
-    corpus, 
-    num_topics=num_topics, 
-    id2word=dictionary, 
-    passes=passes, 
-    iterations=iterations,
-    minimum_probability=minimum_probability,
-    random_state=2018,
-    workers=4)
+    lda_model_tfidf = gensim.models.LdaMulticore(
+        corpus, 
+        num_topics=cfg.lda.num_topics, 
+        id2word=dictionary, 
+        passes=cfg.lda.passes, 
+        iterations=cfg.lda.iterations,
+        minimum_probability=cfg.lda.minimum_probability,
+        random_state=cfg.lda.random_state,
+        workers=cfg.lda.workers)
+    
+    lda_model_tfidf.save(cfg.model_path)
 
 
-for idx, topic in lda_model_tfidf.print_topics(-1):
-    print('Topic: {} Word: {}'.format(idx, topic))
-
-
-lda_1_path = os.path.join(model_dir, "lda_1")
-lda_model_tfidf.save(lda_1_path)
+if __name__ == '__main__':
+    main()

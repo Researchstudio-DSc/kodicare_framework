@@ -1,29 +1,30 @@
 import csv
 import sys
 from tqdm import tqdm
+import hydra
+import spacy
+from spacy.lang.en import English
+from typing import List
 
 csv.field_size_limit(sys.maxsize)
 
-f_path = "./data/TREC-COVID_complete_content.csv"
-f_out_path = "./data/TREC-COVID_complete_content.csv.tokenized.txt"
 
-
-def read_trec_covid(batch_size = None):
+def read_trec_covid(f_path, batch_size = None, only_abstract=False):
     with open(f_path, "r") as fp:
         reader = csv.reader(fp, delimiter=",", quotechar='"')
         keys = reader.__next__()
         batch = []
-        #for line in tqdm(reader, desc="batch"):
         for line in reader:
             d = {k:v for k,v in zip(keys, line)}
             cord_uid = d["cord_uid"]
-            #print(cord_uid)
-            doc_text = f'{d["title"]} {d["abstract"]} {d["content"]} {d["text"]}'
+            if only_abstract:
+                doc_text = f'{d["title"]} {d["abstract"]}'
+            else:
+                doc_text = f'{d["title"]} {d["abstract"]} {d["content"]} {d["text"]}'
             doc_text = doc_text.replace("[", " ")
             doc_text = doc_text.replace('"', " ")
             if batch_size:
                 batch.append((cord_uid, doc_text))
-                #batch.append((cord_uid, "doc_text"))
                 if len(batch) == batch_size:
                     yield batch
                     batch = []
@@ -34,21 +35,10 @@ def read_trec_covid(batch_size = None):
             yield batch
 
 
-
-import spacy
-from spacy.lang.en import English
-nlp = spacy.load("en_core_web_md")
-#nlp.max_length = 10000000
-
-sent_nlp = English()
-sent_nlp.add_pipe('sentencizer')
-sent_nlp.max_length = 10000000
-
-
-def preprocess(texts, sentence_split=False):
+def preprocess(texts, nlp: spacy.language.Language, sent_nlp: spacy.language.Language=None):
     results = []
-    if sentence_split:
-        texts, sents_per_doc = get_sentence_split(texts)
+    if sent_nlp:
+        texts, sents_per_doc = get_sentence_split(sent_nlp, texts)
     for doc in tqdm(nlp.pipe(texts), desc="pre"):
         result = []
         results.append(result)
@@ -58,7 +48,7 @@ def preprocess(texts, sentence_split=False):
                     result.append("<NUM>")
                 else:
                     result.append(token.lemma_.lower())
-    if sentence_split:
+    if sent_nlp:
         results = merge_sents_to_doc(results, sents_per_doc)
     return results
 
@@ -75,7 +65,7 @@ def merge_sents_to_doc(results, sents_per_doc):
     return results_merged
 
 
-def get_sentence_split(long_text_batch):
+def get_sentence_split(sent_nlp: spacy.language.Language, long_text_batch: List[str]):
     sentences = []
     sents_per_doc = []
     for doc in tqdm(sent_nlp.pipe(long_text_batch), desc="sent"):
@@ -86,11 +76,29 @@ def get_sentence_split(long_text_batch):
 
 
 
-with open(f_out_path, "w") as fp:
-    #for batch in read_trec_covid(batch_size=16384):
-    for batch in read_trec_covid(batch_size=1024):
-        batch_cord_uid, batch_text = zip(*batch)
-        batch_processed = preprocess(batch_text, sentence_split=True)
-        for cord_uid, doc in zip(batch_cord_uid, batch_processed):
-            doc_text = " ".join(doc)
-            fp.write(f'{cord_uid},"{doc_text}"\n')
+
+
+@hydra.main(version_base=None, config_path="./conf", config_name=None)
+def main(cfg):
+    nlp = spacy.load("en_core_web_md")
+
+    if not cfg.preprocessing.only_abstract:
+        sent_nlp = English()
+        sent_nlp.add_pipe('sentencizer')
+        sent_nlp.max_length = 10000000
+    else:
+        sent_nlp = None
+    with open(cfg.tokenized_path, "w") as fp:
+        #for batch in read_trec_covid(batch_size=1024):
+        for batch in read_trec_covid(cfg.raw_text_path, 
+                                     batch_size=cfg.preprocessing.batch_size, 
+                                     only_abstract=cfg.preprocessing.only_abstract):
+            batch_cord_uid, batch_text = zip(*batch)
+            batch_processed = preprocess(batch_text, nlp=nlp, sent_nlp=sent_nlp)
+            for cord_uid, doc in zip(batch_cord_uid, batch_processed):
+                doc_text = " ".join(doc)
+                fp.write(f'{cord_uid},"{doc_text}"\n')
+
+
+if __name__ == '__main__':
+    main()
