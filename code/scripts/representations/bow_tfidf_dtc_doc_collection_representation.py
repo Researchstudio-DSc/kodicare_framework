@@ -1,5 +1,6 @@
 import hydra
 import pandas as pd
+from gensim import models
 
 from code.representations import bow_representation
 from code.utils import io_util
@@ -13,19 +14,27 @@ def represent_doc_collection(dtcs_content_dir, collection_path, out_dir, collect
 
     bow_vectors = [bow_instance.represent_text(doc) for doc in df['merged_text']]
     print(len(bow_vectors))
+    tfidf = models.TfidfModel(bow_vectors)
+    tfidf_vectors = tfidf[bow_vectors]
 
     # sum the vectors
-    d = {}
+    bow_dict = {}
+    tfidf_dict = {}
     for k, v in vocab_dict.iteritems():
-        d[k] = 0
+        bow_dict[k] = tfidf_dict[k] = 0
 
     for vec in bow_vectors:
         for name, num in vec:
-            d[name] += num
+            bow_dict[name] += num
+    for vec in tfidf_vectors:
+        for name, num in vec:
+            tfidf_dict[name] += num
 
     # using map
-    merged_vec = list(map(tuple, d.items()))
-    io_util.write_pickle(merged_vec, io_util.join(out_dir, str(collection_id) + '_vec.pkl'))
+    merged_bow_vec = list(map(tuple, bow_dict.items()))
+    merged_tfidf_vec = list(map(tuple, tfidf_dict.items()))
+    io_util.write_pickle(merged_bow_vec, io_util.join(out_dir, str(collection_id) + '_bow_vec.pkl'))
+    io_util.write_pickle(merged_tfidf_vec, io_util.join(out_dir, str(collection_id) + '_tfidf_vec.pkl'))
 
 
 @hydra.main(version_base=None, config_path="../../../conf", config_name=None)
