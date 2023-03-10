@@ -28,6 +28,7 @@ def extract_contents(dtc_ids_path, out_dir, full_contents_path):
     full_contents_df = pd.read_csv(full_contents_path, usecols=['cord_uid', 'title', 'abstract'])
     print(full_contents_df.head())
 
+    full_contents_df.fillna('', inplace=True)
     for index, tc_id in enumerate(dtc_ids):
         print("Extracting the content for collection:", index)
         extract_contents_for_collection(full_contents_df, tc_id, out_dir, index)
