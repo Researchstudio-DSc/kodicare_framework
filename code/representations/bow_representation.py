@@ -7,13 +7,12 @@ from code.representations import text_representation_interface
 from code.utils import preprocess_util
 
 
-def bow_vectorize(tokens, vocab):
+def bow_vectorize(tokens, vocab_dict):
     '''
-    This function takes list of words in a sentence as input
-    and returns a vector of size of filtered_vocab.It puts 0 if the
-    word is not present in tokens and count of token if present.
+    This function takes list of words in a text as input, vocab dictionary from gensim
+    and returns the frequency of the words in the text
     '''
-    return [tokens.count(w) for w in vocab]
+    return vocab_dict.doc2bow(tokens)
 
 
 class BOWRepresentation(text_representation_interface.TextRepresentationInterface):

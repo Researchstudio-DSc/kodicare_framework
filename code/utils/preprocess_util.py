@@ -46,6 +46,10 @@ def remove_punctuation(tokens, punctuations):
     return [word for word in tokens if word not in punctuations]
 
 
+def remove_short_tokens(tokens, size=3):
+    return [word for word in tokens if len(word) > size]
+
+
 def lemmatize_tokens(tokens, language='english'):
     if language != 'english':
         return tokens
@@ -58,15 +62,16 @@ def stem_tokens(tokens, language='english'):
 
 
 def spacy_tokenizer(sentence, parser, stopwords, punctuations):
-    mytokens = parser(sentence)
-    mytokens = [word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in mytokens]
-    mytokens = [word for word in mytokens if word not in stopwords and word not in punctuations]
-    mytokens = " ".join([i for i in mytokens])
-    return mytokens
+    tokens = parser(sentence)
+    tokens = [word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in tokens]
+    tokens = [word for word in tokens if word not in stopwords and word not in punctuations]
+    tokens = " ".join([i for i in tokens])
+    return tokens
 
 
 def vectorize_text(text, vectorizer):
     return vectorizer.fit_transform(text)
+
 
 def execute_common_preprocess_pipeline(text, punctuation, language='english'):
     stopwords = get_stopwords(language=language)
@@ -74,6 +79,7 @@ def execute_common_preprocess_pipeline(text, punctuation, language='english'):
     tokens = word_tokenize(text)
     tokens = remove_stopwords(tokens, stopwords)
     tokens = remove_punctuation(tokens, punctuation)
+    tokens = remove_short_tokens(tokens,)
     tokens = lemmatize_tokens(tokens, language=language)
     tokens = stem_tokens(tokens, language=language)
 
