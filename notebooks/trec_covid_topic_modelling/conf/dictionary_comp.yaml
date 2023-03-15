@@ -1,0 +1,13 @@
+
+# file paths
+tokenized_paths: 
+    - "data/trec_covid_topic_modelling/abcnews-date-text.csv.tokenized.txt"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving/0.csv"
+dictionary_path: "models/trec_covid_topic_modelling/dict_comp"
+
+
+dictionary:
+    no_below: 15
+    no_above: 0.5
+    keep_n: 100000
+

@@ -4,8 +4,8 @@ import os
 
 model_dir = "models/trec_covid_topic_modelling"
 
-distance = "kullback_leibler"
-#distance = "hellinger"
+#distance = "kullback_leibler"
+distance = "hellinger"
 #distance = "jaccard"
 #distance = "jensen_shannon"
 
@@ -30,5 +30,5 @@ def plot_difference_matplotlib(mdiff, title="", annotation=None):
     plt.show()
 
 
-mdiff, annotation = model_1.diff(model_2, distance=distance, num_words=100)
+mdiff, annotation = model_1.diff(model_2, distance=distance)
 plot_difference_matplotlib(mdiff, title=f"Topic difference (one model) [{distance} distance]", annotation=annotation)

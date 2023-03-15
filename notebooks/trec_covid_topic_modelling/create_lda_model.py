@@ -6,12 +6,6 @@ from gensim import models
 import hydra
 csv.field_size_limit(sys.maxsize)
 
-f_tokenized_path = "/home/tfink/data/kodicare/trec-covid/dtc_evolving/0.csv"
-num_topics = 30
-passes = 40
-iterations = 5000
-minimum_probability = 0.05
-
 
 def read_tokenized(path, batch_size = None):
     with open(path, "r") as fp:
@@ -45,11 +39,9 @@ def create_corpus(docs, dictionary):
 
 @hydra.main(version_base=None, config_path="./conf", config_name=None)
 def main(cfg):
-    processed_docs = list(read_tokenized(cfg.tokenized_path, batch_size=cfg.lda.batch_size))
-    dictionary = gensim.corpora.Dictionary(processed_docs)
-    dictionary.filter_extremes(no_below=cfg.lda.filter.no_below, 
-                               no_above=cfg.lda.filter.no_above, 
-                               keep_n=cfg.lda.filter.keep_n)
+    processed_docs = read_tokenized(cfg.tokenized_path, batch_size=None)
+
+    dictionary = gensim.corpora.Dictionary.load(cfg.dictionary_path)
     
     corpus = create_corpus(processed_docs, dictionary)
 
