@@ -120,3 +120,23 @@ class EvolvingDTCSplitsParser:
             accumulative_results = np.add(
                 self.evaluation_splits_data[run_name][dtc_name][eval_metric][topic_keys[i]][...], accumulative_results)
         return accumulative_results / len(topic_keys)
+
+    def get_absolute_results_delta(self, run_name, dtc_name, eval_metric, step):
+        """
+        returns the result delta as the absolute difference between runs of a dtc
+        :param run_name: one of these values which refers to the IR system
+        {'bm25_qe_run', 'bm25_run', 'dirLM_qe_run', 'dirLM_run', 'dlh_qe_run', 'dlh_run', 'pl2_qe_run', 'pl2_run'}
+        :param dtc_name: one of the values refers to the type of DTC creation
+        {'dtc_evolving_eval', 'dtc_random_eval', 'stc_random_eval'}
+        :param eval_metric: one of the evaluation metrics
+        {'P_10', 'Rprec', 'bpref', 'map', 'ndcg', 'ndcg_cut_10', 'recip_rank'}
+        :param step: number of steps to skip between dtcs must be more or equal to 1
+        :return: numpy array for calculated RDs
+        """
+        results = self.get_avg_run_evaluation(run_name, dtc_name, eval_metric)
+        results_delta = []
+        for tc_ind in range(0, len(results), step):
+            if (tc_ind + step) >= len(results):
+                break
+            results_delta.append(results[tc_ind + step] - results[tc_ind])
+        return np.array(results_delta)
