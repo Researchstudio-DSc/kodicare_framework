@@ -6,6 +6,7 @@ class to parse the hdf5 of splits for cord 19 and robust test collection include
 
 import h5py
 import numpy as np
+import ruptures as rpt
 
 
 class EvolvingDTCSplitsParser:
@@ -140,3 +141,26 @@ class EvolvingDTCSplitsParser:
                 break
             results_delta.append(results[tc_ind + step] - results[tc_ind])
         return np.array(results_delta)
+
+    def get_result_delta_change_points(self, results_delta, n_bkps=4):
+        """
+        returns the change points in the result delta
+        :param results_delta: numpy array of results or result delta
+        :param n_bkps: number of change points
+        :return: a binary numpy array if the value is one then a change happens at the specific point
+        """
+
+        change_points = np.zeros(len(results_delta))
+
+        algo = rpt.KernelCPD(kernel="linear", min_size=2).fit(results_delta)
+        finished = False
+        while not finished:
+            try:
+                change_points_indices = algo.predict(n_bkps=n_bkps)
+                for ind in change_points_indices:
+                    change_points[ind - 1] = 1
+                finished = True
+            except rpt.exceptions.BadSegmentationParameters:
+                n_bkps -= 1
+
+        return np.array(change_points)
