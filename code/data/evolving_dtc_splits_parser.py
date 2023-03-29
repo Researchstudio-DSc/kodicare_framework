@@ -7,6 +7,9 @@ class to parse the hdf5 of splits for cord 19 and robust test collection include
 import h5py
 import numpy as np
 import ruptures as rpt
+from scipy import stats
+
+rng = np.random.default_rng()
 
 
 class EvolvingDTCSplitsParser:
@@ -157,10 +160,19 @@ class EvolvingDTCSplitsParser:
         while not finished:
             try:
                 change_points_indices = algo.predict(n_bkps=n_bkps)
-                for ind in change_points_indices:
-                    change_points[ind - 1] = 1
+                prev_cp_index = 0
+                for ind in range(len(change_points_indices) - 1):
+                    if self.verify_change_point_significance(
+                            results_delta[prev_cp_index:change_points_indices[ind]],
+                            results_delta[change_points_indices[ind]:change_points_indices[ind + 1]], p=0.1):
+                        change_points[change_points_indices[ind] - 1] = 1
                 finished = True
             except rpt.exceptions.BadSegmentationParameters:
                 n_bkps -= 1
 
         return np.array(change_points)
+
+    def verify_change_point_significance(self, interval_1, interval_2, p=0.05):
+        # if the mean of the first interval is significantly less than the second then the change is significant
+        t_value, p_value = stats.ttest_ind(interval_1, interval_2, alternative='less')
+        return p_value < p
