@@ -178,6 +178,14 @@ class EvolvingDTCSplitsParser:
         return p_value < p
 
     def get_cp_ttest(self, results, step=2, p=0.05):
+        """
+        finding the change points between intervals identified by the step the point is 1 if there is a significant
+        change by t test between two successive intervals
+        :param results: array of results/values over time
+        :param step: window size
+        :param p: the level of significance
+        :return: array of 0 or 1 where 1 defines a point changed.
+        """
         change_points = np.zeros(len(results))
         for ind in range(0, len(results) - step, step):
             if (ind + step) >= len(results) or (ind + step * 2) > len(results):
