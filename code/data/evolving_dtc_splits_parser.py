@@ -176,3 +176,15 @@ class EvolvingDTCSplitsParser:
         # if the mean of the first interval is significantly less than the second then the change is significant
         t_value, p_value = stats.ttest_ind(interval_1, interval_2, alternative='less')
         return p_value < p
+
+    def get_cp_ttest(self, results, step=2, p=0.05):
+        change_points = np.zeros(len(results))
+        for ind in range(0, len(results) - step, step):
+            if (ind + step) >= len(results) or (ind + step * 2) > len(results):
+                break
+            interval_1 = results[ind:ind + step]
+            interval_2 = results[ind + step:ind + step * 2]
+            t_value_greater, p_value = stats.ttest_ind(interval_1, interval_2)
+            if p_value < p:
+                change_points[ind + step] = 1
+        return change_points
