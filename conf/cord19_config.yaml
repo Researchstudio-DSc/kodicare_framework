@@ -37,3 +37,7 @@ dtc: # dynamic test collection information
   dtc_evolving_cont_ids_path: TREC-COVID_dtc_evolving_cont_corduids.pkl
   dtc_evolving_ids_path: TREC-COVID_dtc_evolving_corduids.pkl
   dtc_random_ids_path: TREC-COVID_dtc_random_corduids.pkl
+  dtc_evolving_cont_content_dir: TREC-COVID_dtc_evolving_cont
+  dtc_evolving_content_dir: TREC-COVID_dtc_evolving
+  dtc_random_content_dir: TREC-COVID_dtc_random
+  full_contents_path: TREC-COVID_complete_content.csv
