@@ -1,0 +1,17 @@
+config:
+  root_dir: ??? # the root directory of the whole data set base
+  lang: 'en'
+
+dtc: # dynamic test collection information
+  evaluation_splits_dir: robust/dtc #the output directory of retrieval results
+  evaluation_splits_path: ??? # hdf5 file of samples and evaluation data.
+  docs_full_info_path: qrels_merge-robust.csv
+  docno_date_path: Robust_docno_date.csv
+  out_in_fields_map: {"docno": 'docno', "date": 'date1'}
+  dtc_evolving_cont_ids_path: Robust_dtc_evolving_cont_docnos.pkl
+  dtc_evolving_ids_path: Robust_dtc_evolving_docnos.pkl
+  dtc_random_ids_path: Robust_dtc_random_docnos.pkl
+  dtc_evolving_cont_content_dir: Robust_dtc_evolving_cont
+  dtc_evolving_content_dir: Robust_dtc_evolving
+  dtc_random_content_dir: Robust_dtc_random
+  full_contents_path: qrels_merge-robust.csv
