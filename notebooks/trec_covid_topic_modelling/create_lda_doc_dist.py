@@ -5,6 +5,7 @@ import gensim
 from gensim import models
 import matplotlib.pyplot as plt
 import numpy as np
+from notebooks.trec_covid_topic_modelling.util import read_tokenized
 from tqdm import tqdm
 import plotly.express as px
 csv.field_size_limit(sys.maxsize)
@@ -24,26 +25,6 @@ model_2 = gensim.models.LdaMulticore.load(model_2_path)
 corpus_1_path = "/home/tfink/data/kodicare/trec-covid/dtc_evolving/0.csv"
 corpus_2_path = "/home/tfink/data/kodicare/trec-covid/dtc_evolving/11.csv"
 #corpus_2_path = "data/trec_covid_topic_modelling/abcnews-date-text.csv.tokenized.txt"
-
-
-def read_tokenized(path, batch_size = None):
-    with open(path, "r") as fp:
-        reader = csv.reader(fp, delimiter=",", quotechar='"')
-        batch = []
-        #for line in tqdm(reader, desc="batch"):
-        for line in reader:
-            cord_uid, doc_text_tokenized = line
-            doc_tokens = doc_text_tokenized.split(" ")
-            if batch_size:
-                batch.append(doc_tokens)
-                if len(batch) == batch_size:
-                    yield batch
-                    batch = []
-            else:
-                yield doc_tokens
-        
-        if len(batch) > 0:
-            yield batch
 
 
 def plot_difference_matplotlib(mdiff, title="", annotation=None):

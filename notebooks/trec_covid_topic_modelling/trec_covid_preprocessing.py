@@ -45,7 +45,8 @@ def preprocess(texts, nlp: spacy.language.Language, sent_nlp: spacy.language.Lan
         for token in doc:
             if not token.is_stop and not token.is_punct and len(token.text) > 3:
                 if token.like_num:
-                    result.append("<NUM>")
+                    #result.append("<NUM>")
+                    continue
                 else:
                     result.append(token.lemma_.lower())
     if sent_nlp:
