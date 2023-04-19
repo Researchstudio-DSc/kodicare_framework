@@ -5,6 +5,7 @@ import hydra
 import spacy
 from spacy.lang.en import English
 from typing import List
+import re
 
 csv.field_size_limit(sys.maxsize)
 
@@ -54,6 +55,16 @@ def preprocess(texts, nlp: spacy.language.Language, sent_nlp: spacy.language.Lan
     return results
 
 
+clean_p = re.compile(r'[^\w\s]+|\d+', re.UNICODE)
+
+def preprocess_quick(texts):
+    results = []
+    for doc in tqdm(texts, desc="pre"):
+        clean_string = clean_p.sub(' ', doc)
+        results.append(clean_string.lower().split())
+    return results
+
+
 def merge_sents_to_doc(results, sents_per_doc):
     results_merged = []
     i = 0
@@ -81,21 +92,26 @@ def get_sentence_split(sent_nlp: spacy.language.Language, long_text_batch: List[
 
 @hydra.main(version_base=None, config_path="./conf", config_name=None)
 def main(cfg):
-    nlp = spacy.load("en_core_web_md")
 
-    if not cfg.preprocessing.only_abstract:
-        sent_nlp = English()
-        sent_nlp.add_pipe('sentencizer')
-        sent_nlp.max_length = 10000000
-    else:
-        sent_nlp = None
+    if not cfg.preprocessing.quick:
+        nlp = spacy.load("en_core_web_md")
+
+        if not cfg.preprocessing.only_abstract:
+            sent_nlp = English()
+            sent_nlp.add_pipe('sentencizer')
+            sent_nlp.max_length = 10000000
+        else:
+            sent_nlp = None
     with open(cfg.tokenized_path, "w") as fp:
         #for batch in read_trec_covid(batch_size=1024):
         for batch in read_trec_covid(cfg.raw_text_path, 
                                      batch_size=cfg.preprocessing.batch_size, 
                                      only_abstract=cfg.preprocessing.only_abstract):
             batch_cord_uid, batch_text = zip(*batch)
-            batch_processed = preprocess(batch_text, nlp=nlp, sent_nlp=sent_nlp)
+            if cfg.preprocessing.quick:
+                batch_processed = preprocess_quick(batch_text)
+            else:
+                batch_processed = preprocess(batch_text, nlp=nlp, sent_nlp=sent_nlp)
             for cord_uid, doc in zip(batch_cord_uid, batch_processed):
                 doc_text = " ".join(doc)
                 fp.write(f'{cord_uid},"{doc_text}"\n')
