@@ -57,21 +57,27 @@ def preprocess(texts, nlp: spacy.language.Language, sent_nlp: spacy.language.Lan
 
 clean_p = re.compile(r'[^\w\s]+|\d+', re.UNICODE)
 
-def preprocess_quick(texts):
+def preprocess_lm(texts, sent_nlp: spacy.language.Language=None):
+    texts, sents_per_doc = get_sentence_split(sent_nlp, texts)
     results = []
-    for doc in tqdm(texts, desc="pre"):
+    for doc in tqdm(texts, desc="pre-lm"):
         clean_string = clean_p.sub(' ', doc)
         results.append(clean_string.lower().split())
+    results = merge_sents_to_doc(results, sents_per_doc, keep_sentences=True)
     return results
 
 
-def merge_sents_to_doc(results, sents_per_doc):
+def merge_sents_to_doc(results, sents_per_doc, keep_sentences=False):
     results_merged = []
     i = 0
     for sent_count in sents_per_doc:
         doc_full = []
-        for j in range(i, sent_count+i):
-            doc_full.extend(results[j])
+        if keep_sentences:
+            for j in range(i, sent_count+i):
+                doc_full.append(results[j])
+        else:
+            for j in range(i, sent_count+i):
+                doc_full.extend(results[j])
         i += sent_count
         results_merged.append(doc_full)
     return results_merged
@@ -93,7 +99,7 @@ def get_sentence_split(sent_nlp: spacy.language.Language, long_text_batch: List[
 @hydra.main(version_base=None, config_path="./conf", config_name=None)
 def main(cfg):
 
-    if not cfg.preprocessing.quick:
+    if cfg.preprocessing.mode == "lda":
         nlp = spacy.load("en_core_web_md")
 
         if not cfg.preprocessing.only_abstract:
@@ -102,19 +108,28 @@ def main(cfg):
             sent_nlp.max_length = 10000000
         else:
             sent_nlp = None
+    if cfg.preprocessing.mode == "lm":
+        sent_nlp = English()
+        sent_nlp.add_pipe('sentencizer')
+        sent_nlp.max_length = 10000000
+
     with open(cfg.tokenized_path, "w") as fp:
         #for batch in read_trec_covid(batch_size=1024):
         for batch in read_trec_covid(cfg.raw_text_path, 
                                      batch_size=cfg.preprocessing.batch_size, 
                                      only_abstract=cfg.preprocessing.only_abstract):
             batch_cord_uid, batch_text = zip(*batch)
-            if cfg.preprocessing.quick:
-                batch_processed = preprocess_quick(batch_text)
-            else:
+            if cfg.preprocessing.mode == "lm":
+                batch_processed = preprocess_lm(batch_text, sent_nlp=sent_nlp)
+                for cord_uid, doc in zip(batch_cord_uid, batch_processed):
+                    for sent in doc:
+                        sent_text = " ".join(sent)
+                        fp.write(f'{cord_uid},"{sent_text}"\n')
+            elif cfg.preprocessing.mode == "lda":
                 batch_processed = preprocess(batch_text, nlp=nlp, sent_nlp=sent_nlp)
-            for cord_uid, doc in zip(batch_cord_uid, batch_processed):
-                doc_text = " ".join(doc)
-                fp.write(f'{cord_uid},"{doc_text}"\n')
+                for cord_uid, doc in zip(batch_cord_uid, batch_processed):
+                    doc_text = " ".join(doc)
+                    fp.write(f'{cord_uid},"{doc_text}"\n')
 
 
 if __name__ == '__main__':

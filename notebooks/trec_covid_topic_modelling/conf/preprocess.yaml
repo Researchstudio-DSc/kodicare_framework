@@ -1,12 +1,12 @@
 
 # file paths
 raw_text_path: ???
-tokenized_paths: ???
+tokenized_path: ???
 
 
 # config for trec_covid_preprocssing.py
 preprocessing:
     batch_size: 1024
     only_abstract: false
-    quick: true
+    mode: "lm"
 

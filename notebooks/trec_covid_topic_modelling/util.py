@@ -1,5 +1,6 @@
 import csv
 import sys
+from tqdm import tqdm
 csv.field_size_limit(sys.maxsize)
 
 
@@ -8,7 +9,7 @@ def read_tokenized(path, batch_size = None):
         reader = csv.reader(fp, delimiter=",", quotechar='"')
         batch = []
         #for line in tqdm(reader, desc="batch"):
-        for line in reader:
+        for line in tqdm(reader):
             cord_uid, doc_text_tokenized = line
             doc_tokens = doc_text_tokenized.split(" ")
             # remove num token after all
