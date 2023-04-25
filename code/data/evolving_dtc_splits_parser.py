@@ -107,6 +107,26 @@ class EvolvingDTCSplitsParser:
         """
         return self.evaluation_splits_data[run_name][dtc_name][eval_metric][str(topic_number)][...]
 
+    def get_collection_runs_evaluation_list(self, run_name, dtc_name, eval_metric, collection_id):
+        """
+        return the evaluation result of group of dynamic test collection for a specific topic number
+        :param run_name: one of these values which refers to the IR system
+        {'bm25_qe_run', 'bm25_run', 'dirLM_qe_run', 'dirLM_run', 'dlh_qe_run', 'dlh_run', 'pl2_qe_run', 'pl2_run'}
+        :param dtc_name: one of the values refers to the type of DTC creation
+        {'dtc_evolving_eval', 'dtc_random_eval', 'stc_random_eval'}
+        :param eval_metric: one of the evaluation metrics
+        {'P_10', 'Rprec', 'bpref', 'map', 'ndcg', 'ndcg_cut_10', 'recip_rank'}
+        :param topic_number: according to the test collection CORD19: from 0-49
+        :param collection_id: the sub collection number
+        :return: numpy array of evaluation result for each collection
+        """
+        topic_keys = list(self.evaluation_splits_data[run_name][dtc_name][eval_metric].keys())
+        topic_keys.sort()
+        results = []
+        for qid in topic_keys:
+            results.append(self.evaluation_splits_data[run_name][dtc_name][eval_metric][qid][...][collection_id])
+        return results
+
     def get_avg_run_evaluation(self, run_name, dtc_name, eval_metric):
         """
         return the average value of all topic results for group of test collection
