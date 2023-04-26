@@ -1,0 +1,13 @@
+
+# file paths
+train_corpus: "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/0.txt"
+comp_corpora: 
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/11.txt"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/22.txt"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/33.txt"
+
+lm:
+    model_path: '/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/0.binary'
+    tmp_folder: '/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/tmp'
+    order: 3
+    memory: 8G
