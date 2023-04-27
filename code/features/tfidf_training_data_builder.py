@@ -53,8 +53,6 @@ def update_res_change_map(res_change_map, evolving_dtc_parser, interval_start1, 
             for i in range(interval_start2, interval_end2):
                 acc_res_2 += evolving_dtc_parser.get_collection_runs_evaluation_list(system, 'dtc_evolving_eval',
                                                                                      metric, i)
-            # print(acc_res_1)
-            # print(acc_res_2)
             # TODO: add here test for normal distribution
             if evolving_dtc_splits_parser.is_data_normal(acc_res_1) and evolving_dtc_splits_parser.is_data_normal(acc_res_2):
                 normal_dist_pairs += 1
@@ -122,7 +120,7 @@ class TFIDFTrainingDataBuilder(training_data_builder_interface.TrainingDataBuild
             features_df['kd_max'] = kd_max
             features_df['kd_avg'] = kd_avg
             features_df.fillna(0, inplace=True)
-            features_df.to_pickle(io_util.join(dtc_dir, 'tfidf_eval0_' + str(step) + '.pkl'))
+            features_df.to_pickle(io_util.join(self.dtc_dir, 'tfidf_eval0_' + str(step) + '.pkl'))
             if concat_feature_df.empty:
                 concat_feature_df = features_df
             else:
@@ -134,7 +132,7 @@ class TFIDFTrainingDataBuilder(training_data_builder_interface.TrainingDataBuild
         res_change_map = init_rd_map()
         evaluation_splits_path = io_util.join(self.dtc_dir, self.evaluation_file)
         evolving_dtc_parser = evolving_dtc_splits_parser.EvolvingDTCSplitsParser(evaluation_splits_path)
-        normal_dist_pairs, not_normal_dist_pairs = 0
+        normal_dist_pairs = not_normal_dist_pairs = 0
 
         for step in range(START_STEP, END_STEP):
             for tc_ind in range(0, self.epochs - step):
