@@ -4,11 +4,13 @@ from pathlib import Path
 import subprocess
 import kenlm
 import time
+import multiprocessing
 
-def score_corpus(model, corpus_path):
+def score_corpus(binary_model_path, corpus_path, position):
     # compute the score for the corpus
     # the corpus is expected to consist of a tokenized sentence per line
     # alternatively, run bin/query -v summary
+    model = kenlm.Model(binary_model_path)
 
     words = 0
     score = 0
@@ -18,7 +20,7 @@ def score_corpus(model, corpus_path):
             lines += 1
     
     with open(corpus_path, "r") as fp:
-        for line in tqdm(fp, desc="lines", total=lines):
+        for line in tqdm(fp, desc="lines", total=lines, position=position):
             sent = line.strip()
             # sum the probabilities for each sentence and count words
             # word count will be len(sentence) + 1 for each sentence (due to added </s> token)
@@ -27,21 +29,27 @@ def score_corpus(model, corpus_path):
                 words += 1
     # equivalent to log10(perplexity)
     # perplexity = 10.0**(-score/words)
-    log_perplexity = (-score / words)
-    return log_perplexity
+    cross_entropy = (-score / words)
+    return corpus_path, cross_entropy
 
 
-def calculate_deltas(cfg, binary_model_path, corpus, out_fp):
-    model = kenlm.Model(binary_model_path)
+def get_scores(cfg, binary_model_path):
+    with multiprocessing.Pool(processes=cfg.processes) as pool:
+        args = [(binary_model_path, comp_corpus, idx) for idx, comp_corpus in enumerate(cfg.corpora)]
+        scores = pool.starmap(score_corpus, args)
 
-    training_score = score_corpus(model, corpus)
-    out_fp.write(f"{corpus}, {training_score:.4f}\n")
+    return scores
 
-    for comp_corpus in cfg.corpora:
-        if comp_corpus != corpus:
-            comp_score = score_corpus(model, corpus_path=comp_corpus)
-            out_fp.write(f"{corpus}, {comp_corpus}, {comp_score:.4f}, {comp_score - training_score:.4f}\n")
 
+def get_training_score(corpus, scores):
+    for comp_corpus, score in scores:
+        if comp_corpus == corpus:
+            return score
+
+def calculate_deltas(corpus, scores, out_fp):
+    training_score = get_training_score(corpus, scores)
+    for comp_corpus, comp_score in scores:
+        out_fp.write(f"{corpus}, {comp_corpus}, {training_score:.4f}, {comp_score:.4f}, {comp_score - training_score:.4f}\n")
 
 
 @hydra.main(version_base=None, config_path="./conf", config_name=None)
@@ -52,6 +60,7 @@ def main(cfg):
     t00 = time.time()
 
     for corpus in cfg.corpora:
+        print(f'### CORPUS: {corpus}')
         arap_model_path = Path(corpus).with_suffix('.arpa')
         binary_model_path = Path(corpus).with_suffix('.binary')
         t0 = time.time()
@@ -89,8 +98,9 @@ def main(cfg):
         print('#'*80)
         print(f"LM binary: {t2-t1}")
         # compare corpus to all other corpora and calculate deltas
+        scores = get_scores(cfg, str(binary_model_path))
         with open(cfg.results_file, "a") as fp:
-            calculate_deltas(cfg, str(binary_model_path), corpus, out_fp=fp)#
+            calculate_deltas(corpus, scores, out_fp=fp)
         
         t3 = time.time()
         print('#'*80)

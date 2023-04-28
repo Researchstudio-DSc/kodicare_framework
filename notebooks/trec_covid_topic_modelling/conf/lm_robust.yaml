@@ -1,0 +1,18 @@
+
+# file paths
+results_file: "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/results.txt"
+corpora: 
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/0.txt"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/11.txt"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/22.txt"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/33.txt"
+    - "/home/tfink/projects/rsa/kodicare/kodicare_framework/data/trec_covid_topic_modelling/abcnews-date-text.csv.tokenized_quick.txt"
+
+processes: 4
+
+lm:
+    lib_path: '/home/tfink/util/kenlm/build'
+    tmp_folder: '/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/tmp'
+    order: 4
+    memory: 8G
+    keep_arpa: false
