@@ -13,6 +13,7 @@ import json
 def read_robust(f_path, batch_size = None):
     with open(f_path, "r") as fp:
         data = json.load(fp)
+        batch = []
         for doc_data in data:
             doc_id = doc_data["id"]
             doc_text = f'{doc_data["title"]} {doc_data["contents"]}'
@@ -88,6 +89,7 @@ def get_sentence_split(sent_nlp: spacy.language.Language, long_text_batch: List[
 
 
 def preprocess_file(cfg, in_path, out_path, sent_nlp=None, nlp=None):
+    print(str(in_path))
     with open(out_path, "w") as fp:
         for batch in read_robust(in_path, 
                                 batch_size=cfg.preprocessing.batch_size):

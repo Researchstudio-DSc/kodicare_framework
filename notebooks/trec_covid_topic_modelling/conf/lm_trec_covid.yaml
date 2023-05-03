@@ -1,7 +1,7 @@
 
 # file paths
 results_file: "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/results.txt"
-corpora: 
+corpora_list: 
     - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/0.txt"
     - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/11.txt"
     - "/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/22.txt"

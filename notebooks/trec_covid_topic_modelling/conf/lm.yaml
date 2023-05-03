@@ -1,17 +1,17 @@
 
 # file paths
-results_file: "/home/tfink/data/robust/results.txt"
+results_file: "/home/tfink/data/kodicare/robust/results.txt"
 corpora: "/home/tfink/data/kodicare/robust/lm"
 json: "/home/tfink/data/kodicare/robust/json"
 
 
-processes: 4
+processes: 41
 
 lm:
     lib_path: '/home/tfink/util/kenlm/build'
-    tmp_folder: '/home/tfink/data/kodicare/trec-covid/dtc_evolving_lm/tmp'
+    tmp_folder: '/home/tfink/data/kodicare/robust/tmp'
     order: 4
-    memory: 8G
+    memory: 32G
     keep_arpa: false
 
 

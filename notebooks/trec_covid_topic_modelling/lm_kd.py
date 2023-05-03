@@ -33,9 +33,9 @@ def score_corpus(binary_model_path, corpus_path, position):
     return corpus_path, cross_entropy
 
 
-def get_scores(cfg, binary_model_path):
-    with multiprocessing.Pool(processes=cfg.processes) as pool:
-        args = [(binary_model_path, comp_corpus, idx) for idx, comp_corpus in enumerate(cfg.corpora)]
+def get_scores(binary_model_path, corpora, processes=4):
+    with multiprocessing.Pool(processes=processes) as pool:
+        args = [(binary_model_path, comp_corpus, idx) for idx, comp_corpus in enumerate(corpora)]
         scores = pool.starmap(score_corpus, args)
 
     return scores
@@ -49,7 +49,7 @@ def get_training_score(corpus, scores):
 def calculate_deltas(corpus, scores, out_fp):
     training_score = get_training_score(corpus, scores)
     for comp_corpus, comp_score in scores:
-        out_fp.write(f"{corpus}, {comp_corpus}, {training_score:.4f}, {comp_score:.4f}, {comp_score - training_score:.4f}\n")
+        out_fp.write(f'"{Path(corpus).stem}", "{Path(comp_corpus).stem}", {training_score:.4f}, {comp_score:.4f}, {comp_score - training_score:.4f}\n')
 
 
 @hydra.main(version_base=None, config_path="./conf", config_name=None)
@@ -59,7 +59,15 @@ def main(cfg):
     binary_command = Path(cfg.lm.lib_path).joinpath("bin/build_binary")
     t00 = time.time()
 
-    for corpus in cfg.corpora:
+    if "corpora_list" in cfg and cfg.corpora_list:
+        corpora = cfg.corpora_list
+    elif "corpora" in cfg and cfg.corpora:
+        corpora_path = Path(cfg.corpora)
+        corpora = list(corpora_path.glob("*.txt"))
+    else:
+        assert False
+
+    for corpus in corpora:
         print(f'### CORPUS: {corpus}')
         arap_model_path = Path(corpus).with_suffix('.arpa')
         binary_model_path = Path(corpus).with_suffix('.binary')
@@ -98,7 +106,7 @@ def main(cfg):
         print('#'*80)
         print(f"LM binary: {t2-t1}")
         # compare corpus to all other corpora and calculate deltas
-        scores = get_scores(cfg, str(binary_model_path))
+        scores = get_scores(str(binary_model_path), corpora, processes=cfg.processes)
         with open(cfg.results_file, "a") as fp:
             calculate_deltas(corpus, scores, out_fp=fp)
         
