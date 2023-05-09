@@ -6,6 +6,10 @@ class to parse the hdf5 of splits for cord 19 and robust test collection include
 
 import h5py
 import numpy as np
+import ruptures as rpt
+from scipy import stats
+
+rng = np.random.default_rng()
 
 
 class EvolvingDTCSplitsParser:
@@ -120,3 +124,75 @@ class EvolvingDTCSplitsParser:
             accumulative_results = np.add(
                 self.evaluation_splits_data[run_name][dtc_name][eval_metric][topic_keys[i]][...], accumulative_results)
         return accumulative_results / len(topic_keys)
+
+    def get_absolute_results_delta(self, run_name, dtc_name, eval_metric, step):
+        """
+        returns the result delta as the absolute difference between runs of a dtc
+        :param run_name: one of these values which refers to the IR system
+        {'bm25_qe_run', 'bm25_run', 'dirLM_qe_run', 'dirLM_run', 'dlh_qe_run', 'dlh_run', 'pl2_qe_run', 'pl2_run'}
+        :param dtc_name: one of the values refers to the type of DTC creation
+        {'dtc_evolving_eval', 'dtc_random_eval', 'stc_random_eval'}
+        :param eval_metric: one of the evaluation metrics
+        {'P_10', 'Rprec', 'bpref', 'map', 'ndcg', 'ndcg_cut_10', 'recip_rank'}
+        :param step: number of steps to skip between dtcs must be more or equal to 1
+        :return: numpy array for calculated RDs
+        """
+        results = self.get_avg_run_evaluation(run_name, dtc_name, eval_metric)
+        results_delta = []
+        for tc_ind in range(0, len(results), step):
+            if (tc_ind + step) >= len(results):
+                break
+            results_delta.append(results[tc_ind + step] - results[tc_ind])
+        return np.array(results_delta)
+
+    def get_result_delta_change_points(self, results_delta, n_bkps=4):
+        """
+        returns the change points in the result delta
+        :param results_delta: numpy array of results or result delta
+        :param n_bkps: number of change points
+        :return: a binary numpy array if the value is one then a change happens at the specific point
+        """
+
+        change_points = np.zeros(len(results_delta))
+
+        algo = rpt.KernelCPD(kernel="linear", min_size=2).fit(results_delta)
+        finished = False
+        while not finished:
+            try:
+                change_points_indices = algo.predict(n_bkps=n_bkps)
+                prev_cp_index = 0
+                for ind in range(len(change_points_indices) - 1):
+                    if self.verify_change_point_significance(
+                            results_delta[prev_cp_index:change_points_indices[ind]],
+                            results_delta[change_points_indices[ind]:change_points_indices[ind + 1]], p=0.1):
+                        change_points[change_points_indices[ind] - 1] = 1
+                finished = True
+            except rpt.exceptions.BadSegmentationParameters:
+                n_bkps -= 1
+
+        return np.array(change_points)
+
+    def verify_change_point_significance(self, interval_1, interval_2, p=0.05):
+        # if the mean of the first interval is significantly less than the second then the change is significant
+        t_value, p_value = stats.ttest_ind(interval_1, interval_2, alternative='less')
+        return p_value < p
+
+    def get_cp_ttest(self, results, step=2, p=0.05):
+        """
+        finding the change points between intervals identified by the step the point is 1 if there is a significant
+        change by t test between two successive intervals
+        :param results: array of results/values over time
+        :param step: window size
+        :param p: the level of significance
+        :return: array of 0 or 1 where 1 defines a point changed.
+        """
+        change_points = np.zeros(len(results))
+        for ind in range(0, len(results) - step, step):
+            if (ind + step) >= len(results) or (ind + step * 2) > len(results):
+                break
+            interval_1 = results[ind:ind + step]
+            interval_2 = results[ind + step:ind + step * 2]
+            t_value_greater, p_value = stats.ttest_ind(interval_1, interval_2)
+            if p_value < p:
+                change_points[ind + step] = 1
+        return change_points
