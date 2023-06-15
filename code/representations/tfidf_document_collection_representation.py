@@ -27,20 +27,4 @@ class TFIDFDocCollectionRepresentation(
         tfidf = models.TfidfModel(bow_vectors)
         tfidf_vectors = tfidf[bow_vectors]
 
-        # sum the vectors
-        bow_dict = {}
-        tfidf_dict = {}
-        for k, v in self.vocab_dict.iteritems():
-            bow_dict[k] = tfidf_dict[k] = 0
-
-        for vec in bow_vectors:
-            for name, num in vec:
-                bow_dict[name] += num
-        for vec in tfidf_vectors:
-            for name, num in vec:
-                tfidf_dict[name] += num
-
-        # using map
-        merged_bow_vec = list(map(tuple, bow_dict.items()))
-        merged_tfidf_vec = list(map(tuple, tfidf_dict.items()))
-        return merged_bow_vec, merged_tfidf_vec
+        return bow_vectors, tfidf_vectors
