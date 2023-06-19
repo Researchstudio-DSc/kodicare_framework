@@ -45,3 +45,4 @@ dtc: # dynamic test collection information
   end_step: 10
   epochs: 41
   generate_vocab_stats: True
+  rd_label_path: ??? # name of the .pkl file to save the result delta labels
