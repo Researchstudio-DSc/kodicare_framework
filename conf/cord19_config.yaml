@@ -46,3 +46,7 @@ dtc: # dynamic test collection information
   epochs: 41
   generate_vocab_stats: True
   rd_label_path: ??? # name of the .pkl file to save the result delta labels
+
+kd_rd_prediction:
+  svm:
+    plot_data_prefix_tfidf: ??? #path prefix to collect plot data
