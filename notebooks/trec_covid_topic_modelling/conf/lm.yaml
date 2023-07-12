@@ -16,6 +16,6 @@ lm:
 
 
 preprocessing:
-    folder_path: 
+    folder_path:
     batch_size: 1024
     mode: "lm"

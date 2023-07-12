@@ -8,5 +8,6 @@ tokenized_path: ???
 preprocessing:
     batch_size: 1024
     only_abstract: false
-    mode: "lm"
+    mode: "bert"
+    token_limit: 256
 
