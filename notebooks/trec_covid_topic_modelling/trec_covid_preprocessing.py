@@ -15,13 +15,18 @@ def read_trec_covid(f_path, batch_size = None, only_abstract=False):
         reader = csv.reader(fp, delimiter=",", quotechar='"')
         keys = reader.__next__()
         batch = []
+        skipped = 0
         for line in reader:
             d = {k:v for k,v in zip(keys, line)}
             cord_uid = d["cord_uid"]
             if only_abstract:
                 doc_text = f'{d["title"]} {d["abstract"]}'
             else:
+                if len(d["abstract"]) == 0 and len(d["content"]) == 0 and len(d["text"]) == 0:
+                    skipped += 1
+                    continue
                 doc_text = f'{d["title"]} {d["abstract"]} {d["content"]} {d["text"]}'
+                
             doc_text = doc_text.replace("[", " ")
             doc_text = doc_text.replace('"', " ")
             if batch_size:
@@ -34,6 +39,7 @@ def read_trec_covid(f_path, batch_size = None, only_abstract=False):
         
         if len(batch) > 0:
             yield batch
+    print(f"Skipped {skipped} empty documents")
 
 
 def preprocess(texts, nlp: spacy.language.Language, sent_nlp: spacy.language.Language=None):
