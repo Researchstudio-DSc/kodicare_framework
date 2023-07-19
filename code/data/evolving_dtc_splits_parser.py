@@ -8,8 +8,47 @@ import h5py
 import numpy as np
 import ruptures as rpt
 from scipy import stats
+from scipy.stats import kstest
 
 rng = np.random.default_rng()
+
+
+def verify_change_point_significance(interval_1, interval_2, p=0.05):
+    # if the mean of the first interval is significantly less than the second then the change is significant
+    t_value, p_value = stats.ttest_ind(interval_1, interval_2, alternative='less')
+    return p_value < p
+
+
+def get_cp_ttest(results, step=2, p=0.05):
+    """
+    finding the change points between intervals identified by the step the point is 1 if there is a significant
+    change by t test between two successive intervals
+    :param results: array of results/values over time
+    :param step: window size
+    :param p: the level of significance
+    :return: array of 0 or 1 where 1 defines a point changed.
+    """
+    change_points = np.zeros(len(results))
+    for ind in range(0, len(results) - step, step):
+        print((ind + step), (ind + step * 2))
+        if (ind + step) >= len(results) or (ind + step * 2) > len(results):
+            break
+        interval_1 = results[ind:ind + step]
+        interval_2 = results[ind + step:ind + step * 2]
+        if is_significant_change(interval_1, interval_2, p):
+            change_points[ind + step] = 1
+    return change_points
+
+
+def is_data_normal(results):
+    statistics, p_value = kstest(results, 'norm')
+    return p_value >= 0.05
+
+
+def is_significant_change(res_interval1, res_interval2, p=0.05):
+    t_value_greater, p_value = stats.ttest_ind(res_interval1, res_interval2)
+    # print(res_interval1, res_interval2, p_value)
+    return 1 if p_value < p else 0
 
 
 class EvolvingDTCSplitsParser:
@@ -107,6 +146,26 @@ class EvolvingDTCSplitsParser:
         """
         return self.evaluation_splits_data[run_name][dtc_name][eval_metric][str(topic_number)][...]
 
+    def get_collection_runs_evaluation_list(self, run_name, dtc_name, eval_metric, collection_id):
+        """
+        return the evaluation result of group of dynamic test collection for a specific topic number
+        :param run_name: one of these values which refers to the IR system
+        {'bm25_qe_run', 'bm25_run', 'dirLM_qe_run', 'dirLM_run', 'dlh_qe_run', 'dlh_run', 'pl2_qe_run', 'pl2_run'}
+        :param dtc_name: one of the values refers to the type of DTC creation
+        {'dtc_evolving_eval', 'dtc_random_eval', 'stc_random_eval'}
+        :param eval_metric: one of the evaluation metrics
+        {'P_10', 'Rprec', 'bpref', 'map', 'ndcg', 'ndcg_cut_10', 'recip_rank'}
+        :param topic_number: according to the test collection CORD19: from 0-49
+        :param collection_id: the sub collection number
+        :return: numpy array of evaluation result for each collection
+        """
+        topic_keys = list(self.evaluation_splits_data[run_name][dtc_name][eval_metric].keys())
+        topic_keys.sort()
+        results = []
+        for qid in topic_keys:
+            results.append(self.evaluation_splits_data[run_name][dtc_name][eval_metric][qid][...][collection_id])
+        return results
+
     def get_avg_run_evaluation(self, run_name, dtc_name, eval_metric):
         """
         return the average value of all topic results for group of test collection
@@ -162,7 +221,7 @@ class EvolvingDTCSplitsParser:
                 change_points_indices = algo.predict(n_bkps=n_bkps)
                 prev_cp_index = 0
                 for ind in range(len(change_points_indices) - 1):
-                    if self.verify_change_point_significance(
+                    if verify_change_point_significance(
                             results_delta[prev_cp_index:change_points_indices[ind]],
                             results_delta[change_points_indices[ind]:change_points_indices[ind + 1]], p=0.1):
                         change_points[change_points_indices[ind] - 1] = 1
@@ -171,28 +230,3 @@ class EvolvingDTCSplitsParser:
                 n_bkps -= 1
 
         return np.array(change_points)
-
-    def verify_change_point_significance(self, interval_1, interval_2, p=0.05):
-        # if the mean of the first interval is significantly less than the second then the change is significant
-        t_value, p_value = stats.ttest_ind(interval_1, interval_2, alternative='less')
-        return p_value < p
-
-    def get_cp_ttest(self, results, step=2, p=0.05):
-        """
-        finding the change points between intervals identified by the step the point is 1 if there is a significant
-        change by t test between two successive intervals
-        :param results: array of results/values over time
-        :param step: window size
-        :param p: the level of significance
-        :return: array of 0 or 1 where 1 defines a point changed.
-        """
-        change_points = np.zeros(len(results))
-        for ind in range(0, len(results) - step, step):
-            if (ind + step) >= len(results) or (ind + step * 2) > len(results):
-                break
-            interval_1 = results[ind:ind + step]
-            interval_2 = results[ind + step:ind + step * 2]
-            t_value_greater, p_value = stats.ttest_ind(interval_1, interval_2)
-            if p_value < p:
-                change_points[ind + step] = 1
-        return change_points

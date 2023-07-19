@@ -41,3 +41,12 @@ dtc: # dynamic test collection information
   dtc_evolving_content_dir: TREC-COVID_dtc_evolving
   dtc_random_content_dir: TREC-COVID_dtc_random
   full_contents_path: TREC-COVID_complete_content.csv
+  start_step: 2
+  end_step: 10
+  epochs: 41
+  generate_vocab_stats: True
+  rd_label_path: ??? # name of the .pkl file to save the result delta labels
+
+kd_rd_prediction:
+  svm:
+    plot_data_prefix_tfidf: ??? #path prefix to collect plot data
