@@ -10,4 +10,5 @@ pandas==2.0.0
 scipy==1.9.3
 spacy==3.5.2
 umap-learn==0.5.3
+hydra-core==1.2.0
 hdbscan
