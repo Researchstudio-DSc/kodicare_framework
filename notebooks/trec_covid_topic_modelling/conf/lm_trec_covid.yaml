@@ -1,0 +1,20 @@
+
+# file paths
+results_file: "/home/tfink/data/kodicare/trec-covid/results.txt"
+corpora: "/home/tfink/data/kodicare/trec-covid/dtc_evolving_abstracts_lm/"
+
+
+processes: 41
+
+lm:
+    lib_path: '/home/tfink/util/kenlm/build'
+    tmp_folder: '/home/tfink/data/kodicare/trec-covid/tmp'
+    order: 4
+    memory: 32G
+    keep_arpa: false
+
+
+preprocessing:
+    folder_path: 
+    batch_size: 1024
+    mode: "lm"

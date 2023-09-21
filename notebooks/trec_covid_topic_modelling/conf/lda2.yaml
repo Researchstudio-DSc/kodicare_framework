@@ -1,0 +1,24 @@
+
+# file paths
+raw_text_path:
+tokenized_path: "/home/tfink/data/kodicare/trec-covid/dtc_evolving/11.csv"
+model_path: "models/trec_covid_topic_modelling/lda2"
+dictionary_path: "models/trec_covid_topic_modelling/dict1"
+
+
+# config for trec_covid_preprocssing.py
+preprocessing:
+    batch_size: 1024
+    only_abstract: false
+
+
+# config for create_lda_model.py
+lda:
+    num_topics: 20
+    passes: 40
+    iterations: 5000
+    batch_size:
+    minimum_probability: 0.05
+    random_state: 2018
+    workers: 4
+

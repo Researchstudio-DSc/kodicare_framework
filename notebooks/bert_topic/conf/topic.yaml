@@ -1,0 +1,14 @@
+
+# file paths
+results_file: "/home/tfink/data/kodicare/trec-covid/results.txt"
+corpora: "/home/tfink/data/kodicare/trec-covid/dtc_evolving_bert"
+
+
+processes: 1
+random_state: 42
+embedding_model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
+preprocessing:
+    folder_path:
+    batch_size: 1024
+    mode: "bert"

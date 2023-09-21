@@ -1,0 +1,13 @@
+
+# file paths
+tokenized_paths: 
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving/0.csv"
+    - "/home/tfink/data/kodicare/trec-covid/dtc_evolving/11.csv"
+dictionary_path: "models/trec_covid_topic_modelling/dict1"
+
+
+dictionary:
+    no_below: 15
+    no_above: 0.5
+    keep_n: 100000
+

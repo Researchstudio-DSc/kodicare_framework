@@ -1,5 +1,7 @@
 models/doc2vec/*
 outputs
+data/trec_covid_topic_modelling
+models/trec_covid_topic_modelling
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
