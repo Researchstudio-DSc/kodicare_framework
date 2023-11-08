@@ -1,9 +1,10 @@
+import pandas as pd
 import pyterrier as pt
 
 from code.utils.io_util import *
 
 if not pt.started():
-    pt.init(logging='TRACE')
+    pt.init(logging='TRACE', boot_packages=["com.github.terrierteam:terrier-prf:-SNAPSHOT"])
 
 
 def create_index_trec(index_path, docs_path):
@@ -88,3 +89,66 @@ def create_index_json_longeval(index_path, docs_path):
         print("Index already exists, an existing reference is returned ...")
         index_ref = pt.IndexRef.of(join(index_path, 'data.properties'))
     return index_ref
+
+
+def read_queries_longeval(queries_path):
+    queries_df = pd.read_csv(queries_path, sep='\t', names=['qid', 'query'])
+    return queries_df
+
+
+def read_qrels_longeval(qres_path):
+    qrels_df = pd.read_csv(qres_path, sep="\s+", names=["qid", "rank", "docno", "label"])
+    return qrels_df
+
+
+def retrieve_run(index_path, queries_df, wmodel, controls={}, num_results=1000):
+    """
+    use pyterrier batch retrieval to return a df of results for retrieval
+    :param index_path: the path of the created index by pyterrier
+    :param queries_df: the queries dataframe
+    :param wmodel: the scoring model e.g. TF-IDF, BM25
+    (http://terrier.org/docs/current/javadoc/org/terrier/matching/models/package-summary.html)
+    :param controls: parameters for query expansion
+    (https://pyterrier.readthedocs.io/en/latest/terrier-retrieval.html#terrier-configuration)
+    :param num_results: the number of rows for the results
+    :return:
+    """
+    index_ref = pt.IndexRef.of(join(index_path, 'data.properties'))
+    br_object = pt.BatchRetrieve(index_ref, wmodel=wmodel, controls=controls, num_results=num_results)
+    run = br_object(queries_df)
+    return run
+
+
+def evaluate_run(run, run_name, qrels, metrics):
+    """
+    evaluate a run given a set of metrics and returns a data frame of each metric per query
+    :param run: the data frame of the run result
+    :param run_name: string that gives a run name
+    :param qrels:
+    :param metrics: list of evaluation metrics
+    (http://www.rafaelglater.com/en/post/learn-how-to-use-trec_eval-to-evaluate-your-information-retrieval-system)
+    :return: dataframe of evaluation result
+    """
+    res_eval = pt.Utils.evaluate(run, qrels, metrics=metrics, perquery=True)
+    run_eval_df = pd.DataFrame(res_eval).unstack().reset_index().rename(
+        columns={'level_0': "qid", "level_1": "metric", 0: run_name})
+    return run_eval_df
+
+
+def evaluate_run_set(runs_dict, qrels, metrics):
+    """
+    evaluate a set of runs and returns a merged dataframe of all runs
+    :param runs_dict: a dictionary of run name --> dataframe of retrieval
+    :param qrels: the qrels
+    :param metrics: list of evaluation metrics
+    (http://www.rafaelglater.com/en/post/learn-how-to-use-trec_eval-to-evaluate-your-information-retrieval-system)
+    :return: dataframe of evaluation result
+    """
+    evaluation_df = pd.DataFrame()
+    for run in runs_dict:
+        run_eval_df = evaluate_run(runs_dict[run], run, qrels, metrics)
+        if len(evaluation_df) == 0:
+            evaluation_df = run_eval_df
+        else:
+            evaluation_df = evaluation_df.merge(run_eval_df)
+    return evaluation_df
