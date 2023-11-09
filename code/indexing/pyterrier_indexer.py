@@ -124,7 +124,7 @@ def retrieve_run(index_path, queries_df, wmodel, controls={}, num_results=1000):
     return run
 
 
-def evaluate_run(run, run_name, qrels, metrics):
+def evaluate_run(run, run_name, qrels, metrics, perquery=False):
     """
     evaluate a run given a set of metrics and returns a data frame of each metric per query
     :param run: the data frame of the run result
@@ -132,15 +132,20 @@ def evaluate_run(run, run_name, qrels, metrics):
     :param qrels:
     :param metrics: list of evaluation metrics
     (http://www.rafaelglater.com/en/post/learn-how-to-use-trec_eval-to-evaluate-your-information-retrieval-system)
+    :param perquery: if True then return the measure for each query otherwise the average result
     :return: dataframe of evaluation result
     """
-    res_eval = pt.Utils.evaluate(run, qrels, metrics=metrics, perquery=True)
-    run_eval_df = pd.DataFrame(res_eval).unstack().reset_index().rename(
-        columns={'level_0': "qid", "level_1": "metric", 0: run_name})
+    res_eval = pt.Utils.evaluate(run, qrels, metrics=metrics, perquery=perquery)
+    print(res_eval)
+    if not perquery:
+        run_eval_df = pd.DataFrame({'metric': list(res_eval.keys()), run_name: list(res_eval.values())})
+    else:
+        run_eval_df = pd.DataFrame(res_eval).unstack().reset_index().rename(
+            columns={'level_0': "qid", "level_1": "metric", 0: run_name})
     return run_eval_df
 
 
-def evaluate_run_set(runs_dict, qrels, metrics):
+def evaluate_run_set(runs_dict, qrels, metrics, perquery=False):
     """
     evaluate a set of runs and returns a merged dataframe of all runs
     :param runs_dict: a dictionary of run name --> dataframe of retrieval
@@ -151,7 +156,7 @@ def evaluate_run_set(runs_dict, qrels, metrics):
     """
     evaluation_df = pd.DataFrame()
     for run in runs_dict:
-        run_eval_df = evaluate_run(runs_dict[run], run, qrels, metrics)
+        run_eval_df = evaluate_run(runs_dict[run], run, qrels, metrics, perquery=perquery)
         if len(evaluation_df) == 0:
             evaluation_df = run_eval_df
         else:
