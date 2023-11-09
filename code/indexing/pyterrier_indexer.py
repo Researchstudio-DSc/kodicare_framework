@@ -96,6 +96,11 @@ def read_queries_longeval(queries_path):
     return queries_df
 
 
+def read_queries_longeval_trec(queries_path):
+    queries_df = pt.io.read_topics(queries_path)
+    return queries_df
+
+
 def read_qrels_longeval(qres_path):
     qrels_df = pd.read_csv(qres_path, sep="\s+", names=["qid", "rank", "docno", "label"])
     return qrels_df
