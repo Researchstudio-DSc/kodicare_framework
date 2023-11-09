@@ -1,0 +1,78 @@
+test_collection:
+  language: en
+  documents_dir: ??? # json directory of documents to index
+  queries_path: ??? # trec full path of queries
+  qrels_path: ??? # txt full path of qrels
+
+index:
+  index_path: ??? # directory to store the index in
+
+evaluation:
+  evaluation_perquery_output_path: ??? # tsv file path for evaluation for each query
+  evaluation_mean_output_path: ??? #tsv path of evaluation for the mean of the queries
+
+
+retrieval_models:
+  - 0:
+      run_name: tfidf
+      model: TF_IDF
+  - 1:
+      run_name: bm25
+      model: BM25
+  - 2:
+      run_name: pl2
+      model: PL2
+  - 3:
+      run_name: dlm
+      model: DirichletLM
+  - 4:
+      run_name: dlh
+      model: DLH
+  - 5:
+      run_name: dph
+      model: DPH
+  - 6:
+      run_name: tfidf_qe
+      model: TF_IDF
+      controls:
+        qe: on
+        qemodel: Bo1
+  - 7:
+      run_name: bm25_qe
+      model: BM25
+      controls:
+        qe: on
+        qemodel: Bo1
+  - 8:
+      run_name: pl2_qe
+      model: PL2
+      controls:
+        qe: on
+        qemodel: Bo1
+  - 9:
+      run_name: dlm_qe
+      model: DirichletLM
+      controls:
+        qe: on
+        qemodel: Bo1
+  - 10:
+      run_name: dlh_qe
+      model: DLH
+      controls:
+        qe: on
+        qemodel: Bo1
+  - 11:
+      run_name: dph_qe
+      model: DPH
+      controls:
+        qe: on
+        qemodel: Bo1
+
+evaluation_metrics:
+  - map
+  - bpref
+  - ndcg
+  - Rprec
+  - recip_rank
+  - ndcg_cut_10
+  - P_10
