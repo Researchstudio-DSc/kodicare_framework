@@ -3,9 +3,12 @@ import json
 import argparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import scipy.sparse
 import re
 import numpy as np
 from tqdm import tqdm
+import pysparnn.cluster_index as ci
+import time
 no_num_clean_p = re.compile(r'[^\w\s]+|\d+', re.UNICODE)
 
 n_docs = 3213835
@@ -65,21 +68,37 @@ def read_queries():
             queries[q_id] = q_text
     return queries
 
-
-def get_top_k_similar(relevant_doc_vector, doc_vecs, relevant_doc_ids, doc_ids, doc_ids_inv, top_k=10, upper_bound=1.0, lower_bound=0.70):
-    # calculate similarity
-    sim = cosine_similarity(relevant_doc_vector, doc_vecs)
-    # set all known relevant documents to -inf
-    relevant_doc_idx = [doc_ids_inv[doc_id] for doc_id in relevant_doc_ids if doc_id in doc_ids_inv]
-    sim[0,relevant_doc_idx] = -np.inf
-    # set all documents outside the boundaries to -inf
-    sim = np.where(np.logical_and(sim <= upper_bound, sim >= lower_bound), sim, -np.inf)
-    # get the top k document ids with the highest similarity, filtering out -inf
-    top_sims_idx = np.argpartition(sim[0,:], -top_k)[-top_k:]
-    sims_with_idx = [(doc_ids[idx], s) for idx, s in zip(top_sims_idx, sim[0,:][top_sims_idx]) 
-                     if s != -np.inf]
+def batched_search(cp, search_features_vec, batch_size=4096, k=10, k_clusters=2, return_distance=True):
+    search_features_vec_size = search_features_vec.shape[0]
+    steps = int(np.ceil(search_features_vec_size / batch_size))
+    sims_with_idx = []
+    for i in tqdm(range(steps)):
+        start_idx = i*batch_size
+        end_idx = start_idx + batch_size
+        sims_with_idx.extend(
+            cp.search(search_features_vec[start_idx:end_idx,:], k=k, 
+                      k_clusters=k_clusters, return_distance=return_distance)
+        )
     return sims_with_idx
 
+
+def relevance_judgement_batches_iter(x, relevance_judgements, doc_ids_inv, batch_size):
+    search_features_vec_batch = []
+    doc_data_batch = []
+
+    for q_id, relevant_doc_ids in tqdm(relevance_judgements.items()):
+        for pos_doc_id in relevant_doc_ids:
+            if pos_doc_id not in doc_ids_inv:
+                continue
+            relevant_doc_vector = x[doc_ids_inv[pos_doc_id]]
+            search_features_vec_batch.append(relevant_doc_vector)
+            doc_data_batch.append((q_id, pos_doc_id, relevant_doc_ids))
+            if len(search_features_vec_batch) >= batch_size:
+                yield scipy.sparse.vstack(search_features_vec_batch), doc_data_batch
+                search_features_vec_batch = []
+                doc_data_batch = []
+    if len(search_features_vec_batch) > 0:
+        yield scipy.sparse.vstack(search_features_vec_batch), doc_data_batch
 
 
 def main(args):
@@ -87,24 +106,41 @@ def main(args):
     document_file = args.document_file
     qrels_file = args.qrels_file
     triplet_id_file = args.triplet_id_file
+    top_k = 100
+    k_clusters = 5
+    batch_size = 1000
+    upper_bound=1.0
+    lower_bound=0.40
     print("Creating Vectors")
+    t0 = time.time()
     tfidf_vect = TfidfVectorizer(max_df=0.75, min_df=10)
     x = tfidf_vect.fit_transform(document_iterator(document_file, n_docs, only_text=True))
+    t1 = time.time()
+    print("Took", t1-t0)
 
     doc_ids, doc_ids_inv = get_document_ids(document_file)
     relevance_judgements = read_qrels(qrels_file)
 
+    print("Creating Search Index")
+    t0 = time.time()
+    cp = ci.MultiClusterIndex(x, doc_ids)
+    t1 = time.time()
+    print("Took", t1-t0)
+
     print("Creating Triplets")
     with open(triplet_id_file, 'w') as fp:
-        for q_id, relevant_docs in tqdm(relevance_judgements.items()):
-            for pos_doc_id in relevant_docs:
-                if pos_doc_id not in doc_ids_inv:
-                    continue
-                relevant_doc_vector = x[doc_ids_inv[pos_doc_id]]
-                sims_with_idx = get_top_k_similar(relevant_doc_vector=relevant_doc_vector, doc_vecs=x, 
-                                                doc_ids=doc_ids, doc_ids_inv=doc_ids_inv, relevant_doc_ids=relevant_docs, lower_bound=0.40)
-                sims_with_idx = sorted(sims_with_idx, key=lambda x:x[1], reverse=True)
-                for neg_doc_id, s in sims_with_idx:
+        for search_features_vec_batch, doc_data_batch in relevance_judgement_batches_iter(x, relevance_judgements, doc_ids_inv, batch_size):
+            # search approximate nearest neighbors
+            sims_with_idx = cp.search(search_features_vec_batch, k=top_k, k_clusters=k_clusters, return_distance=True)
+
+            # create triplets
+            for i in range(len(doc_data_batch)):
+                # set all known relevant documents to -inf
+                q_id, pos_doc_id, relevant_doc_ids = doc_data_batch[i]
+                for distance, neg_doc_id in sims_with_idx[i]:
+                    s = 1-float(distance)
+                    if neg_doc_id in relevant_doc_ids or s > upper_bound or s < lower_bound:
+                        continue
                     fp.write(f"{q_id} {pos_doc_id} {neg_doc_id} {s:.4f}\n")
     
 
