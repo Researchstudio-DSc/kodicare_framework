@@ -15,3 +15,6 @@ dtc: # dynamic test collection information
   dtc_evolving_content_dir: Robust_dtc_evolving
   dtc_random_content_dir: Robust_dtc_random
   full_contents_path: qrels_merge-robust.csv
+  n_evee: 40 # number of EE to create
+  evee_overlap: 10 # the percentage of overlap between EEs
+  evee_info_path: evee_docnos_40_10.json
