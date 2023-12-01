@@ -11,7 +11,7 @@ from code.utils.io_util import *
 @hydra.main(version_base=None, config_path="../../../../conf", config_name=None)
 def main(cfg):
     evee_dir = join(cfg.config.root_dir, join(cfg.dtc.evaluation_splits_dir, cfg.dtc.dtc_evolving_content_dir))
-    index_path = join(cfg.config.root_dir, join(cfg.dtc.evaluation_splits_dir, cfg.index.index_path))
+    index_path = join(cfg.config.root_dir, join(cfg.dtc.evaluation_splits_dir, cfg.dtc.index.index_path))
 
     if not path_exits(index_path):
         mkdir(index_path)
