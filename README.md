@@ -87,6 +87,20 @@ for this process we expect an Evolving Test Collection which is composed of seve
 
 a sample of EvTC can be found in the data dir 
 
+### EvEE simulation
+you can simulate the creation of an EvEE on a list of time stamped docno
+
+- simulate EvEE by generating list of docids per EE (this generated pkl file of lists that each contains docids per EE)
+```commandline
+python -m code.scripts.data.evee_simulator_executer --config-name cord19_config config.root_dir='/path/to/data'
+```
+
+- to get the documents info per EE for Robust collection 
+```commandline
+python -m code.scripts.data.robust_dtc_ids__doc__converter --config-name cord19_config config.root_dir='/path/to/data'
+```
+
+
 ### TF-IDF KD between document collection
 
 Computes the KD between pairs of document collections using TF-IDF, using the following command
