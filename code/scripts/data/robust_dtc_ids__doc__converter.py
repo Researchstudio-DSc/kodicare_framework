@@ -40,7 +40,7 @@ def extract_contents(dtc_ids_path, out_dir, full_content_map):
 @hydra.main(version_base=None, config_path="../../../conf", config_name=None)
 def main(cfg):
     dtc_ids_path = io_util.join(cfg.config.root_dir,
-                                io_util.join(cfg.dtc.evaluation_splits_dir, cfg.dtc.dtc_evolving_ids_path))
+                                io_util.join(cfg.dtc.evaluation_splits_dir, cfg.dtc.evee_info_path))
     output_dir = io_util.join(cfg.config.root_dir, io_util.join(cfg.dtc.evaluation_splits_dir,
                                                                 cfg.dtc.dtc_evolving_content_dir))
 

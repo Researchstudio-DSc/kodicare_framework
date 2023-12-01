@@ -32,12 +32,12 @@ class EvEESimulator:
         n_overlap = int((n_docs / self.n_evee) * (self.overlap_percentage / 100))
         print("overlap number", n_overlap)
         n_docs_per_collection = int((n_docs / self.n_evee)) + n_overlap
-        evee = {}
+        evee = []
         start_index = 0
         end_index = n_docs_per_collection
         for i in range(self.n_evee):
             ee = docnos[start_index:end_index]
-            evee[str(i)] = ee
+            evee.append(ee)
             start_index = end_index - n_overlap
             end_index = min(n_docs, end_index + n_docs_per_collection - n_overlap)
-        write_json(self.output_path, evee)
+        write_pickle(evee, self.output_path)
