@@ -91,6 +91,30 @@ def create_index_json_longeval(index_path, docs_path):
     return index_ref
 
 
+def iter_dir(docs):
+    for doc in docs:
+        doc['docno'] = doc.pop('id')
+        doc['text'] = doc.pop('contents')
+        yield doc
+
+
+def create_index_json(index_path, docs_path):
+    """
+    create an index for the longeval json dataset
+    :param index_path: the path to store the index
+    :param docs_path: the json file of documents
+    :return: reference to the index
+    """
+    if not path_exits(join(index_path, 'data.properties')):
+        print("Create nex index ..")
+        iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096})
+        index_ref = iter_indexer.index(iter_dir(read_json(docs_path)))
+    else:
+        print("Index already exists, an existing reference is returned ...")
+        index_ref = pt.IndexRef.of(join(index_path, 'data.properties'))
+    return index_ref
+
+
 def read_queries_longeval(queries_path):
     queries_df = pd.read_csv(queries_path, sep='\t', names=['qid', 'query'])
     return queries_df

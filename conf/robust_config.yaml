@@ -7,7 +7,7 @@ dtc: # dynamic test collection information
   evaluation_splits_path: ??? # hdf5 file of samples and evaluation data.
   docs_full_info_path: qrels_merge-robust.csv
   docno_date_path: Robust_docno_date.csv
-  out_in_fields_map: {"docno": 'docno', "date": 'date1'}
+  out_in_fields_map: { "docno": 'docno', "date": 'date1' }
   dtc_evolving_cont_ids_path: Robust_dtc_evolving_cont_docnos.pkl
   dtc_evolving_ids_path: Robust_dtc_evolving_docnos.pkl
   dtc_random_ids_path: Robust_dtc_random_docnos.pkl
@@ -18,3 +18,6 @@ dtc: # dynamic test collection information
   n_evee: 40 # number of EE to create
   evee_overlap: 10 # the percentage of overlap between EEs
   evee_info_path: evee_docnos_40_10.pkl
+
+index:
+  index_path: pyterrier_index # directory to store the index in
