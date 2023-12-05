@@ -10,10 +10,10 @@ from code.utils import io_util
 
 
 def get_full_content():
-    dataset = ir_datasets.load("trec-robust04")
+    dataset = ir_datasets.load("disks45/nocr/trec-robust-2004")
     docno_text_map = {}
     for doc in dataset.docs_iter():
-        docno_text_map[doc[0]] = doc[1].replace('\n', ' ')
+        docno_text_map[doc[0]] = {'title': doc[1].replace('\n', ' '), 'contents': doc[2].replace('\n', ' ')}
     return docno_text_map
 
 
@@ -22,8 +22,8 @@ def extract_contents_for_collection(full_content_map, doc_ids, out_dir, collecti
     for index, doc_id in enumerate(doc_ids):
         doc_contents.append({
             'id': doc_id,
-            'title': '',
-            'contents': full_content_map[doc_id]
+            'title': full_content_map[doc_id]['title'],
+            'contents': full_content_map[doc_id]['contents']
         })
     io_util.write_json(io_util.join(out_dir, 'tc_' + str(collection_id) + '.json'), doc_contents)
 

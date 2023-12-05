@@ -96,6 +96,15 @@ python -m code.scripts.data.evee_simulator_executer --config-name cord19_config 
 ```
 
 - to get the documents info per EE for Robust collection 
+  - follow the procedure to get the access for the Robust disk45 from [NIST](https://trec.nist.gov/data/cd45/index.html) 
+  - download the .tar.gz folders
+  - create a directory if not exist for the ir_datasets
+  - place the folders: FBIS, FR94, FT and, LATIMES inside directory with the following structure 'disks45/corpus/' in the ir_datasets directory
+  - set an environmental variable for the root directory of the ir_dataset
+```commandline
+export IR_DATASETS_HOME=/path/to/ir_datasets/
+```
+  - execute the following command to create the EEs with the documents information.
 ```commandline
 python -m code.scripts.data.robust_dtc_ids__doc__converter --config-name cord19_config config.root_dir='/path/to/data'
 ```

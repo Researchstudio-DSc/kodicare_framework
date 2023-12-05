@@ -19,3 +19,5 @@ nltk>=3.8.1
 https://github.com/kpu/kenlm/archive/master.zip
 ruptures
 pyterrier
+python-terrier
+ir_datasets
