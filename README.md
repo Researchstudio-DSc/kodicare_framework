@@ -106,9 +106,29 @@ export IR_DATASETS_HOME=/path/to/ir_datasets/
 ```
   - execute the following command to create the EEs with the documents information.
 ```commandline
-python -m code.scripts.data.robust_dtc_ids__doc__converter --config-name cord19_config config.root_dir='/path/to/data'
+python -m code.scripts.data.robust_dtc_ids__doc__converter --config-name robust_config config.root_dir='/path/to/data'
 ```
 
+### EvEE indexing and retrieval 
+
+- Install and Configure JAVA (only used when you configure special conda environment) otherwise jdk-11 can be used normally
+```commandline
+conda install -c anaconda openjdk
+```
+
+```commandline
+export JAVA_HOME=/path/to/conda/environment/lib
+```
+
+- index the EEs
+```commandline
+python -u -m code.scripts.indexing_quering.robust.pyterrier_evee_index_creation_executer --config-name robust_config config.root_dir='/path/to/data'
+```
+
+- run the retrieval and the evaluation for each index on the same topics
+```commandline
+python -u -m code.scripts.indexing_quering.robust.pyterrier_evee_robust_retrieval_executer --config-name robust_config config.root_dir='/path/to/data'
+```
 
 ### TF-IDF KD between document collection
 
