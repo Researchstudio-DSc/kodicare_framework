@@ -130,6 +130,19 @@ python -u -m code.scripts.indexing_quering.robust.pyterrier_evee_index_creation_
 python -u -m code.scripts.indexing_quering.robust.pyterrier_evee_robust_retrieval_executer --config-name robust_config config.root_dir='/path/to/data'
 ```
 
+### Generate Result deltas between pairs of EEs 
+There are two approaches to calculate the results delta 
+- Absolute result delta
+```commandline
+python -u -m code.scripts.result_delta.absolute_rd_labelling_executer --config-name robust_config config.root_dir='/path/to/data'
+```
+
+- Relative result delta
+```commandline
+python -u -m code.scripts.result_delta.relative_rd_labelling_executer --config-name robust_config config.root_dir='/path/to/data'
+```
+
+
 ### TF-IDF KD between document collection
 
 Computes the KD between pairs of document collections using TF-IDF, using the following command
