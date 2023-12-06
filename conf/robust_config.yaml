@@ -25,6 +25,10 @@ dtc: # dynamic test collection information
   evaluation:
     evaluation_perquery_output_path: evaluation_per_query # dir will contain tsv files of the retrieval results per query
     evaluation_mean_output_path: evaluation_mean #dir will contain tsv files of the average retrieval results
+    rd_absolute_perquery_path: rd_absolute_perquery_path #dir contain the absolute rd per query
+    rd_absolute_mean_path: rd_absolute_mean_path #dir contain the absolute rd of the mean
+    rd_relative_perquery_path: rd_relative_perquery_path #dir contain the relative rd per query
+    rd_relative_mean_path: rd_relative_mean_path #dir contain the relative rd of the mean
 
 
 retrieval_models:
