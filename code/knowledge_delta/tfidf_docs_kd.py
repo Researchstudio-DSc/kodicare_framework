@@ -41,7 +41,7 @@ class TIFIDFDocsKD(docs_knowledge_delta_interface.DocsKnowledgeDeltaInterface):
     # generate summary of the vocab occurrences using the box plot
     def generate_vocab_stats(self):
         for tc_ind in range(0, self.epochs):
-            vec = io_util.read_pickle(io_util.join(self.rep_dir, str(tc_ind) + '_tfidf_full_vec.pkl'))
+            vec = io_util.read_pickle(io_util.join(self.rep_dir, str(tc_ind) + '_tfidf_vec.pkl'))
             data = construct_tc_rep(self.vocab_dict, vec)
             normalized_data = min_max_np_normalize(data)
             lw, q1, q2, q3, uw = calculate_box_plot_boundaries(normalized_data[np.nonzero(normalized_data)])

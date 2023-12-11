@@ -1,11 +1,11 @@
 import pandas as pd
 from gensim import models
 
-from code.representations import document_collection_representation_interface
+from code.representations.document_collection_representation_interface import *
+from code.utils.preprocess_util import *
 
 
-class TFIDFDocCollectionRepresentation(
-    document_collection_representation_interface.DocumentCollectionRepresentationInterface):
+class TFIDFDocCollectionRepresentation(DocumentCollectionRepresentationInterface):
     def __init__(self, vocab_dict, docs_collection_path, lang='en'):
         super().__init__(lang=lang)
         self.vocab_dict = vocab_dict
@@ -22,7 +22,7 @@ class TFIDFDocCollectionRepresentation(
         df = pd.read_json(self.docs_collection_path)
         df['merged_text'] = df['title'] + ' ' + df['contents']
 
-        bow_vectors = [self.bow_vectorize(doc) for doc in df['merged_text']]
+        bow_vectors = [self.bow_vectorize(word_tokenize(doc)) for doc in df['merged_text']]
         print(len(bow_vectors))
         tfidf = models.TfidfModel(bow_vectors)
         tfidf_vectors = tfidf[bow_vectors]

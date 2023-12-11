@@ -18,6 +18,9 @@ dtc: # dynamic test collection information
   n_evee: 40 # number of EE to create
   evee_overlap: 10 # the percentage of overlap between EEs
   evee_info_path: evee_docnos_40_10.pkl
+  start_step: 2
+  end_step: 10
+  generate_vocab_stats: True
 
   index:
     index_path: pyterrier_index # directory to store the index in

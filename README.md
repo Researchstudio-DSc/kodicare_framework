@@ -147,6 +147,11 @@ python -u -m code.scripts.result_delta.relative_rd_labelling_executer --config-n
 
 Computes the KD between pairs of document collections using TF-IDF, using the following command
 
+if not already installed, run the following command first
+```commandline
+python -m nltk.downloader stopwords punkt wordnet
+```
+
 - Generate the vocabulary from EvTC
 ```commandline
 python -m code.scripts.representations.vocab_dictionary_generator --config-name cord19_config config.root_dir='/path/to/data'
