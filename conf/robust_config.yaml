@@ -21,6 +21,7 @@ dtc: # dynamic test collection information
   start_step: 2
   end_step: 10
   generate_vocab_stats: True
+  rd_label_path: rd_binary_label
 
   index:
     index_path: pyterrier_index # directory to store the index in
