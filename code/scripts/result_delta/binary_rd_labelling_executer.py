@@ -11,7 +11,7 @@ def main(cfg):
 
     systems = [retrieval_model[index]['run_name'] for index, retrieval_model in enumerate(cfg.retrieval_models)]
 
-    binary_rd_instance = BinaryRDLabelling(evaluation_perquery_output_path, cfg.dtc.epochs, cfg.dtc.start_step,
+    binary_rd_instance = BinaryRDLabelling(evaluation_perquery_output_path, cfg.dtc.n_evee, cfg.dtc.start_step,
                                            cfg.dtc.end_step, systems, cfg.evaluation_metrics)
     rd_df = binary_rd_instance.construct_rd_labels()
 
