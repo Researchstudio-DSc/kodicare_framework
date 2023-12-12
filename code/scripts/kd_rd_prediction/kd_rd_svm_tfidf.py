@@ -12,9 +12,9 @@ def main(cfg):
                                                                       cfg.dtc.dtc_evolving_content_dir))
     vocab_dict = io_util.read_pickle(io_util.join(dtcs_content_dir, 'vocab.pkl'))
 
-    tfidf_docs_kd_instance = tfidf_docs_kd.TIFIDFDocsKD(dtcs_content_dir, vocab_dict, cfg.config.epochs,
-                                                        cfg.config.start_step, cfg.config.end_step,
-                                                        cfg.config.generate_vocab_stats)
+    tfidf_docs_kd_instance = tfidf_docs_kd.TIFIDFDocsKD(dtcs_content_dir, vocab_dict, cfg.dtc.n_evee,
+                                                        cfg.dtc.start_step, cfg.dtc.end_step,
+                                                        cfg.dtc.generate_vocab_stats)
     diff_vectors_l, diff_vectors_m, diff_vectors_u = tfidf_docs_kd_instance.calculate_kd()
 
     # get RD -- must execute first binary_rd_labelling_executer

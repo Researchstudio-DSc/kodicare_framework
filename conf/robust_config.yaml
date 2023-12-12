@@ -99,3 +99,7 @@ evaluation_metrics:
   - recip_rank
   - ndcg_cut_10
   - P_10
+
+kd_rd_prediction:
+  svm:
+    plot_data_prefix_tfidf: plots/svm_tfidf_plots
