@@ -3,19 +3,24 @@ import json
 import argparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer
 import scipy.sparse
 import re
 import numpy as np
 from tqdm import tqdm
 import pysparnn.cluster_index as ci
 import time
+import hydra
+from omegaconf import DictConfig
+
+from kd_models import TFIDFDelta
+from indexing import FaissHNSWIndexer
 no_num_clean_p = re.compile(r'[^\w\s]+|\d+', re.UNICODE)
 
-n_docs = 3213835
-document_file = "/home/tfink/data/kodicare/trec-2019-dl/doc_ret/msmarco-docs.head10k.tsv"
-queries_file = "/home/tfink/data/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-queries.tsv"
-qrels_file = "/home/tfink/data/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-qrels.tsv"
-triplet_id_file = "/home/tfink/data/kodicare/trec-2019-dl/doc_ret/triplets.txt"
+# Create Triplets for dense retrieval training.
+
+VECTOR_SPARSE = "vector_sparse"
+VECTOR_DENSE = "vector_dense"
 
 
 def document_iterator(document_file, n_docs, only_text=False):
@@ -60,14 +65,6 @@ def read_qrels(qrels_file):
     return relevance_judgements
 
 
-def read_queries():
-    queries = {}
-    with open(queries_file, "r") as fp:
-        for queries_line in fp:
-            q_id, q_text = queries_line.strip().split(sep="\t")
-            queries[q_id] = q_text
-    return queries
-
 def batched_search(cp, search_features_vec, batch_size=4096, k=10, k_clusters=2, return_distance=True):
     search_features_vec_size = search_features_vec.shape[0]
     steps = int(np.ceil(search_features_vec_size / batch_size))
@@ -101,20 +98,35 @@ def relevance_judgement_batches_iter(x, relevance_judgements, doc_ids_inv, batch
         yield scipy.sparse.vstack(search_features_vec_batch), doc_data_batch
 
 
-def main(args):
-    n_docs = args.n_docs
-    document_file = args.document_file
-    qrels_file = args.qrels_file
-    triplet_id_file = args.triplet_id_file
+@hydra.main(version_base=None, config_path=".", config_name=None)
+def main(cfg):
+    n_docs = cfg.n_docs
+    document_file = cfg.document_file
+    qrels_file = cfg.qrels_file
+    triplet_id_file = cfg.triplet_id_file
+    kd_model = cfg.kd_model
+    index_config = cfg.index_config
+    search_index = cfg.search_index
     top_k = 100
     k_clusters = 5
     batch_size = 1000
     upper_bound=1.0
     lower_bound=0.40
     print("Creating Vectors")
+
+    if kd_model == "tfidf":
+        model = TFIDFDelta(max_df=0.75, min_df=10)
+        vector_type = VECTOR_SPARSE
+    elif kd_model == "bert-embedding":
+        model = SentenceTransformer(cfg.embedding_model)
+        embeddings = model.encode(document_iterator(document_file, n_docs, only_text=True))
+        vector_type = VECTOR_DENSE
+    else:
+        print(f"KD Model {kd_model} is not known.")
+
+
     t0 = time.time()
-    tfidf_vect = TfidfVectorizer(max_df=0.75, min_df=10)
-    x = tfidf_vect.fit_transform(document_iterator(document_file, n_docs, only_text=True))
+    embeddings = model.create_embeddings(document_iterator(document_file, n_docs, only_text=True))
     t1 = time.time()
     print("Took", t1-t0)
 
@@ -123,7 +135,14 @@ def main(args):
 
     print("Creating Search Index")
     t0 = time.time()
-    cp = ci.MultiClusterIndex(x, doc_ids)
+    if index_config["search_index"] == "pysparnn":
+        assert vector_type == VECTOR_SPARSE
+        indexer = ci.MultiClusterIndex(embeddings, doc_ids)
+    elif index_config["search_index"] == "faiss":
+        assert vector_type == VECTOR_DENSE
+        indexer = FaissHNSWIndexer(index_config)
+    else:
+        print(f"Search index {search_index} is not known.")
     t1 = time.time()
     print("Took", t1-t0)
 
@@ -131,7 +150,8 @@ def main(args):
     with open(triplet_id_file, 'w') as fp:
         for search_features_vec_batch, doc_data_batch in relevance_judgement_batches_iter(x, relevance_judgements, doc_ids_inv, batch_size):
             # search approximate nearest neighbors
-            sims_with_idx = cp.search(search_features_vec_batch, k=top_k, k_clusters=k_clusters, return_distance=True)
+            #sims_with_idx = indexer.search(search_features_vec_batch, k=top_k, k_clusters=k_clusters, return_distance=True)
+            sims_with_idx = indexer.search(search_features_vec_batch, k=top_k, k_clusters=k_clusters, return_distance=True)
 
             # create triplets
             for i in range(len(doc_data_batch)):
@@ -146,14 +166,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Create Triplets for dense retrieval training.'
-    )
-
-    parser.add_argument('--document_file', help='TSV file with document data')
-    parser.add_argument('--qrels_file', help='File with TREC qrel data')
-    parser.add_argument('--triplet_id_file', help='Output file for the triplets')
-    parser.add_argument('--n_docs', default=3213835, type=int, help='Number of documents')
-
-    args = parser.parse_args()
-    main(args)
+    main()

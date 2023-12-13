@@ -1,0 +1,54 @@
+
+random_seed: 42
+n_docs: 3213835
+triplet_folder: /newstorage4/fink/data/kodicare/trec-2019-dl/doc_ret/
+document_file: /newstorage4/fink/data/kodicare/trec-2019-dl/doc_ret/msmarco-docs.tsv
+qrels_file: /newstorage4/fink/data/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-qrels.tsv
+queries_file: /newstorage4/fink/data/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-queries.tsv
+triplet_id_file: /newstorage4/fink/data/kodicare/trec-2019-dl/doc_ret/triplets.txt
+triplet_text_folder: /newstorage4/fink/data/kodicare/trec-2019-dl/doc_ret/
+
+kd_model: tfidf # bert-embedding, topics
+embedding_model: sentence-transformers/all-mpnet-base-v2
+
+truncate: true
+analysis: false
+
+index_config:
+  search_index: pysparnn
+  token_dim: 768 # sets the output dimension of the model
+  token_dtype: "float16" # sets the dtype (either float16 or float32)
+  faiss_use_gpu: true
+  faiss_hnsw_graph_neighbors: 128
+  faiss_hnsw_efConstruction: 128 # higher is more accurate and slower to construct
+  faiss_hnsw_efSearch: 128
+
+triplet_files:
+  triplets.train.full.txt:
+    upper_bound: 0.98
+    lower_bound: 0.40
+  triplets.train.90-40.txt:
+    upper_bound: 0.90
+    lower_bound: 0.40
+  triplets.train.80-40.txt:
+    upper_bound: 0.80
+    lower_bound: 0.40
+  triplets.train.70-40.txt:
+    upper_bound: 0.70
+    lower_bound: 0.40
+  triplets.train.60-40.txt:
+    upper_bound: 0.60
+    lower_bound: 0.40
+  triplets.train.90-50.txt:
+    upper_bound: 0.90
+    lower_bound: 0.50
+  triplets.train.90-60.txt:
+    upper_bound: 0.90
+    lower_bound: 0.60
+  triplets.train.90-70.txt:
+    upper_bound: 0.90
+    lower_bound: 0.70
+  triplets.train.80-50.txt:
+    upper_bound: 0.80
+    lower_bound: 0.50
+  
