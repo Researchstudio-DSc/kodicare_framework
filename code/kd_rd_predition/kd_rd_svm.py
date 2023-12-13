@@ -64,7 +64,7 @@ def classify_cross_validation_tfidf(diff_vectors_l, diff_vectors_m, diff_vectors
             features_list = build_training_features_df_tfidf(weights, len(diff_vectors_l), diff_vectors_l,
                                                              diff_vectors_m, diff_vectors_u)
             features_df = pd.DataFrame(features_list, columns=[vocab_dict[key] for key in vocab_dict.keys()])
-            for metric in METRICS:
+            for metric in metrics:
                 clf = SVC()
                 scoring = {'acc': make_scorer(accuracy_score),
                            'p': make_scorer(precision_score),
