@@ -8,8 +8,6 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from sklearn.model_selection import cross_validate
 from sklearn.svm import SVC
 
-SYSTEMS = ['bm25_qe_run', 'bm25_run', 'dirLM_qe_run', 'dirLM_run', 'dlh_qe_run', 'dlh_run', 'pl2_qe_run', 'pl2_run']
-METRICS = ['P_10', 'Rprec', 'bpref', 'map', 'ndcg', 'ndcg_cut_10', 'recip_rank']
 WEIGHTS_PERMUTATIONS = [
     # 1- one feature only
     (0, 0, 6),
@@ -41,8 +39,8 @@ def build_training_features_df_tfidf(weights, rows_numbers, diff_vectors_l, diff
 
 
 def classify_cross_validation_tfidf(diff_vectors_l, diff_vectors_m, diff_vectors_u, vocab_dict, rd_labels_df,
-                                    plot_data_path_prefix):
-    for sys in SYSTEMS:
+                                    plot_data_path_prefix, systems, metrics):
+    for sys in systems:
         acc_map = {}
         f_map = {}
         p_map = {}
@@ -52,7 +50,7 @@ def classify_cross_validation_tfidf(diff_vectors_l, diff_vectors_m, diff_vectors
         p_std_map = {}
         r_std_map = {}
 
-        for metric in METRICS:
+        for metric in metrics:
             acc_map[metric] = []
             p_map[metric] = []
             r_map[metric] = []
