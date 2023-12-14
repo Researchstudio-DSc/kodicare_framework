@@ -6,9 +6,8 @@ from code.knowledge_delta import tfidf_docs_kd
 from code.utils.io_util import *
 
 
-def construct_rd_labels(rd_dir, start_step, end_step, epochs):
-    res_change_map = init_rd_map(start_step, end_step, epochs)
-    normal_dist_pairs = not_normal_dist_pairs = 0
+def construct_rd_labels(rd_dir, start_step, end_step, epochs, systems, metrics):
+    res_change_map = init_rd_map(systems, metrics)
 
     for step in range(start_step, end_step):
         for tc_ind1 in range(0, epochs - step):
