@@ -15,12 +15,10 @@ def construct_rd_labels(rd_dir, start_step, end_step, epochs, systems, metrics):
                 print('RD for', tc_ind1, tc_ind2, step)
                 if tc_ind2 >= epochs:
                     break
-                update_res_change_map(rd_dir, res_change_map, tc_ind1, tc_ind2)
+                update_res_change_map(rd_dir, res_change_map, tc_ind1, tc_ind2, systems, metrics)
 
     rd_df = pd.DataFrame.from_dict(res_change_map)
     rd_df['tc_name'] = get_tc_names()
-    print('# of normal distributions:', normal_dist_pairs)
-    print('# of not normal distributions:', not_normal_dist_pairs)
 
     print('the heed of Results deltas labels')
     print(rd_df.head())
@@ -47,10 +45,10 @@ def init_rd_map(systems, metrics):
 
 
 def update_res_change_map(rd_dir, res_change_map, tc_ind1, tc_ind2, systems, metrics):
-    rd_df = pd.read_csv(join(rd_dir, 'tc_' + str(tc_ind1) + '_' + str(tc_ind2) + '.csv'))
+    rd_df = pd.read_csv(join(rd_dir, 'tc_' + str(tc_ind1) + '_' + str(tc_ind2) + '.csv'), sep='\t')
     for system in systems:
         for (i, metric) in enumerate(metrics):
-            res_change_map[system + '-' + metric].append(rd_df[i][system])
+            res_change_map[system + '-' + metric].append(rd_df.loc[[i]][system])
 
 
 @hydra.main(version_base=None, config_path="../../../conf", config_name=None)
@@ -69,7 +67,7 @@ def main(cfg):
     # get RD -- must execute first relative or absolute rd labelling
     rd_relative_mean_dir = join(cfg.config.root_dir,
                                 join(cfg.dtc.evaluation_splits_dir, cfg.dtc.evaluation.rd_relative_mean_path))
-    rd_df = construct_rd_labels(rd_relative_mean_dir, cfg.dtc.start_step, cfg.dtc.end_step, cfg.dtc.n_evee)
+    rd_df = construct_rd_labels(rd_relative_mean_dir, cfg.dtc.start_step, cfg.dtc.end_step, cfg.dtc.n_evee, systems, cfg.evaluation_metrics)
 
     # train tfidf model
     kd_rd_svr.classify_cross_validation_tfidf(diff_vectors_l, diff_vectors_m, diff_vectors_u, vocab_dict, rd_df,
