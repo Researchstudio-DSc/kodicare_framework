@@ -1,12 +1,12 @@
 
 random_seed: 42
 n_docs: 3213835
-triplet_folder: /data/tfink/kodicare/trec-2019-dl/doc_ret/
-document_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/msmarco-docs.tsv
-qrels_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-qrels.tsv
-queries_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-queries.tsv
-triplet_id_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/triplets.train.txt
-triplet_text_folder: /data/tfink/kodicare/trec-2019-dl/doc_ret
+triplet_folder: /home/tfink/data/kodicare/trec-2019-dl/doc_ret
+document_file: /home/tfink/data/kodicare/trec-2019-dl/doc_ret/msmarco-docs.head10k.tsv
+qrels_file: /home/tfink/data/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-qrels.tsv
+queries_file: /home/tfink/data/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-queries.tsv
+triplet_id_file: /home/tfink/data/kodicare/trec-2019-dl/doc_ret/triplets.train.txt
+triplet_text_folder: /home/tfink/data/kodicare/trec-2019-dl/doc_ret
 
 kd_model:
   #model_type: tfidf # bert-embedding, topics
@@ -34,6 +34,7 @@ index_config:
   faiss_hnsw_graph_neighbors: 128
   faiss_hnsw_efConstruction: 128 # higher is more accurate and slower to construct
   faiss_hnsw_efSearch: 128
+
 
 triplet_files:
   triplets.train.full.txt:
