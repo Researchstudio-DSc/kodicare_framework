@@ -18,7 +18,7 @@ def construct_rd_labels(rd_dir, start_step, end_step, epochs, systems, metrics):
                 update_res_change_map(rd_dir, res_change_map, tc_ind1, tc_ind2, systems, metrics)
 
     rd_df = pd.DataFrame.from_dict(res_change_map)
-    rd_df['tc_name'] = get_tc_names()
+    rd_df['tc_name'] = get_tc_names(start_step, end_step, epochs)
 
     print('the heed of Results deltas labels')
     print(rd_df.head())
@@ -48,7 +48,7 @@ def update_res_change_map(rd_dir, res_change_map, tc_ind1, tc_ind2, systems, met
     rd_df = pd.read_csv(join(rd_dir, 'tc_' + str(tc_ind1) + '_' + str(tc_ind2) + '.csv'), sep='\t')
     for system in systems:
         for (i, metric) in enumerate(metrics):
-            res_change_map[system + '-' + metric].append(rd_df.loc[[i]][system])
+            res_change_map[system + '-' + metric].append(rd_df.loc[i][system])
 
 
 @hydra.main(version_base=None, config_path="../../../conf", config_name=None)

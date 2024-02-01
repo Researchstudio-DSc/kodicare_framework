@@ -4,7 +4,7 @@ Build classification model using SVM to predict binary RD given KD
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, make_scorer
+from sklearn.metrics import mean_absolute_error, mean_squared_error, explained_variance_score, max_error, make_scorer
 from sklearn.model_selection import cross_validate
 from sklearn.svm import SVR
 
@@ -41,24 +41,24 @@ def build_training_features_df_tfidf(weights, rows_numbers, diff_vectors_l, diff
 def classify_cross_validation_tfidf(diff_vectors_l, diff_vectors_m, diff_vectors_u, vocab_dict, rd_labels_df,
                                     plot_data_path_prefix, systems, metrics):
     for sys in systems:
-        acc_map = {}
-        f_map = {}
-        p_map = {}
-        r_map = {}
-        acc_std_map = {}
-        f_std_map = {}
-        p_std_map = {}
-        r_std_map = {}
+        mse_map = {}
+        me_map = {}
+        mae_map = {}
+        eve_map = {}
+        mse_std_map = {}
+        me_std_map = {}
+        mae_std_map = {}
+        eve_std_map = {}
 
         for metric in metrics:
-            acc_map[metric] = []
-            p_map[metric] = []
-            r_map[metric] = []
-            f_map[metric] = []
-            acc_std_map[metric] = []
-            p_std_map[metric] = []
-            r_std_map[metric] = []
-            f_std_map[metric] = []
+            mse_map[metric] = []
+            mae_map[metric] = []
+            eve_map[metric] = []
+            me_map[metric] = []
+            mse_std_map[metric] = []
+            mae_std_map[metric] = []
+            eve_std_map[metric] = []
+            me_std_map[metric] = []
 
         for weights in WEIGHTS_PERMUTATIONS:
             features_list = build_training_features_df_tfidf(weights, len(diff_vectors_l), diff_vectors_l,
@@ -67,39 +67,39 @@ def classify_cross_validation_tfidf(diff_vectors_l, diff_vectors_m, diff_vectors
             for metric in metrics:
                 print('Running SVR CV for system', sys, 'and metric', metric)
                 clf = SVR()
-                scoring = {'acc': make_scorer(accuracy_score),
-                           'p': make_scorer(precision_score),
-                           'r': make_scorer(recall_score),
-                           'f1': make_scorer(f1_score)}
+                scoring = {'mse': make_scorer(mean_squared_error),
+                           'mae': make_scorer(mean_absolute_error),
+                           'eve': make_scorer(explained_variance_score),
+                           'me': make_scorer(max_error)}
                 scores = cross_validate(clf, features_df.head(600), rd_labels_df[sys + '-' + metric].head(600),
                                         scoring=scoring, cv=5, return_train_score=True)
 
-                acc_map[metric].append(round(scores['test_acc'].mean(), 3))
-                p_map[metric].append(round(scores['test_p'].mean(), 3))
-                r_map[metric].append(round(scores['test_r'].mean(), 3))
-                f_map[metric].append(round(scores['test_f1'].mean(), 3))
-                acc_std_map[metric].append(round(scores['test_acc'].std(), 3))
-                p_std_map[metric].append(round(scores['test_p'].std(), 3))
-                r_std_map[metric].append(round(scores['test_r'].std(), 3))
-                f_std_map[metric].append(round(scores['test_f1'].std(), 3))
+                mse_map[metric].append(round(scores['test_mse'].mean(), 3))
+                mae_map[metric].append(round(scores['test_mae'].mean(), 3))
+                eve_map[metric].append(round(scores['test_eve'].mean(), 3))
+                me_map[metric].append(round(scores['test_me'].mean(), 3))
+                mse_std_map[metric].append(round(scores['test_mse'].std(), 3))
+                mae_std_map[metric].append(round(scores['test_mae'].std(), 3))
+                eve_std_map[metric].append(round(scores['test_eve'].std(), 3))
+                me_std_map[metric].append(round(scores['test_me'].std(), 3))
 
         # save plot data
-        plotdata_acc = pd.DataFrame(acc_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_acc_std = pd.DataFrame(acc_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_acc.to_csv(plot_data_path_prefix + '_acc_cv_' + sys + '.csv', sep="\t")
-        plotdata_acc_std.to_csv(plot_data_path_prefix + '_acc_std_cv_' + sys + '.csv', sep="\t")
+        plotdata_acc = pd.DataFrame(mse_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_acc_std = pd.DataFrame(mse_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_acc.to_csv(plot_data_path_prefix + '_mse_cv_' + sys + '.csv', sep="\t")
+        plotdata_acc_std.to_csv(plot_data_path_prefix + '_mse_std_cv_' + sys + '.csv', sep="\t")
 
-        plotdata_p = pd.DataFrame(p_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_p_std = pd.DataFrame(p_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_p.to_csv(plot_data_path_prefix + '_p_cv_' + sys + '.csv', sep="\t")
-        plotdata_p_std.to_csv(plot_data_path_prefix + '_p_std_cv_' + sys + '.csv', sep="\t")
+        plotdata_p = pd.DataFrame(mae_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_p_std = pd.DataFrame(mae_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_p.to_csv(plot_data_path_prefix + '_mae_cv_' + sys + '.csv', sep="\t")
+        plotdata_p_std.to_csv(plot_data_path_prefix + '_mae_std_cv_' + sys + '.csv', sep="\t")
 
-        plotdata_r = pd.DataFrame(r_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_r_std = pd.DataFrame(r_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_r.to_csv(plot_data_path_prefix + '_r_cv_' + sys + '.csv', sep="\t")
-        plotdata_r_std.to_csv(plot_data_path_prefix + '_r_std_cv_' + sys + '.csv', sep="\t")
+        plotdata_r = pd.DataFrame(eve_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_r_std = pd.DataFrame(eve_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_r.to_csv(plot_data_path_prefix + '_eve_cv_' + sys + '.csv', sep="\t")
+        plotdata_r_std.to_csv(plot_data_path_prefix + '_eve_std_cv_' + sys + '.csv', sep="\t")
 
-        plotdata_f = pd.DataFrame(f_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_f_std = pd.DataFrame(f_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
-        plotdata_f.to_csv(plot_data_path_prefix + '_f_cv_' + sys + '.csv', sep="\t")
-        plotdata_f_std.to_csv(plot_data_path_prefix + '_f_std_cv_' + sys + '.csv', sep="\t")
+        plotdata_f = pd.DataFrame(me_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_f_std = pd.DataFrame(me_std_map, index=[str(weights) for weights in WEIGHTS_PERMUTATIONS])
+        plotdata_f.to_csv(plot_data_path_prefix + '_me_cv_' + sys + '.csv', sep="\t")
+        plotdata_f_std.to_csv(plot_data_path_prefix + '_me_std_cv_' + sys + '.csv', sep="\t")
