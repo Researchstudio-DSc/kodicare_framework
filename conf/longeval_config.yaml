@@ -1,3 +1,7 @@
+config:
+  root_dir: ??? # the root directory of the whole data set base
+  lang: 'en'
+
 test_collection:
   language: en
   documents_dir: ??? # json directory of documents to index
@@ -6,6 +10,25 @@ test_collection:
 
 index:
   index_path: ??? # directory to store the index in
+
+dtc: # dynamic test collection information
+  evaluation_splits_dir: qwant/2022/evee #the output directory of retrieval results
+  docno_date_path: longeval_docno_sorted.csv
+  n_evee: 40 # number of EE to create
+  evee_overlap: 10 # the percentage of overlap between EEs
+  evee_info_path: evee_docnos_40_10.pkl
+  collectors_dirs:
+    - qwant/2022/longeval-train-v2/publish/French/Documents/Json
+    - qwant/2022/longeval-test-collection/test-collection/A-Short-July/French/Documents/Json
+    - qwant/2022/longeval-test-collection/test-collection/B-Long-September/French/Documents/Json
+  doc_ids__time__infos:
+    - qwant/2022/evee/urls-with-times-06-train.txt
+    - qwant/2022/evee/urls-with-times-07.txt
+    - qwant/2022/evee/urls-with-times-09.txt
+  doc_id_date_info_path: qwant/2022/evee/longeval_docno_sorted.csv
+  dtc_evolving_content_dir: evee_docs_contents
+  index:
+    index_path: pyterrier_index # directory to store the index in
 
 evaluation:
   evaluation_perquery_output_path: ??? # tsv file path for evaluation for each query
