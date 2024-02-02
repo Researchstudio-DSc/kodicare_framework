@@ -98,6 +98,36 @@ def iter_dir(docs):
         yield doc
 
 
+def create_index_longeval_evee(index_path, ee_docs_ids, docno_text_loc_map):
+    """
+    create an index for an EE from simulated evee for the longeval
+    :param index_path: the path to store the index
+    :param ee_docs_ids: list of docs ids in the ee
+    :param docno_text_loc_map: a map of the location of each document in the full collection
+    :return: reference to the index
+    """
+    if not path_exits(join(index_path, 'data.properties')):
+        print("Create nex index ..")
+        iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096},
+                                          stemmer='FrenchSnowballStemmer', stopwords=None, tokeniser="UTFTokeniser")
+        index_ref = iter_indexer.index(iter_evee_docs_info(ee_docs_ids, docno_text_loc_map))
+    else:
+        print("Index already exists, an existing reference is returned ...")
+        index_ref = pt.IndexRef.of(join(index_path, 'data.properties'))
+    return index_ref
+
+
+def iter_evee_docs_info(ee_docs_ids, docno_text_loc_map):
+    for index, doc_id in enumerate(ee_docs_ids):
+        print(index, doc_id)
+        full_content_map = read_json(docno_text_loc_map[doc_id][0])
+        doc = {
+            'docno': full_content_map[docno_text_loc_map[doc_id][1]]['id'],
+            'text': full_content_map[docno_text_loc_map[doc_id][1]]['contents']
+        }
+        yield doc
+
+
 def create_index_json(index_path, docs_path):
     """
     create an index for the longeval json dataset
