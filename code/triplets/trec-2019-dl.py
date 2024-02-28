@@ -134,7 +134,8 @@ def main(cfg):
     n_docs = cfg.n_docs
     document_file = cfg.document_file
     qrels_file = cfg.qrels_file
-    triplet_id_file = cfg.triplet_id_file
+    triplet_folder = cfg.triplet_folder
+    kd_experiment_name = cfg.kd_experiment_name
     kd_model_config = cfg.kd_model
     iterator_batch_size = cfg.kd_model.iterator_batch_size
     kd_model_type = cfg.kd_model.model_type
@@ -142,7 +143,9 @@ def main(cfg):
     search_index = cfg.index_config.search_index
     top_k = cfg.index_config.top_k
     batch_size = cfg.index_config.batch_size
-    lower_bound = cfg.index_config.lower_bound
+
+    triplet_id_file = os.path.join(triplet_folder, f"triplets_{kd_experiment_name}.train.id")
+
     print("Creating Vectors")
 
     if kd_model_type == "tfidf":
@@ -179,6 +182,7 @@ def main(cfg):
 
     print("Creating Triplets")
     with open(triplet_id_file, 'w') as fp:
+        buffer = []
         for search_features_vec_batch, doc_data_batch in relevance_judgement_batches_iter(embeddings, relevance_judgements, doc_ids_inv, batch_size, vector_type):
             # search approximate nearest neighbors
             #sims_with_idx = indexer.search(search_features_vec_batch, k=top_k, k_clusters=k_clusters, return_distance=True)
@@ -190,9 +194,14 @@ def main(cfg):
                 q_id, pos_doc_id, relevant_doc_ids = doc_data_batch[i]
                 for similarity, neg_doc_id in sims_with_idx[i]:
                     neg_doc_id =doc_ids[int(neg_doc_id)]
-                    if neg_doc_id in relevant_doc_ids or similarity < lower_bound:
+                    if neg_doc_id in relevant_doc_ids:
                         continue
-                    fp.write(f"{q_id} {pos_doc_id} {neg_doc_id} {similarity:.4f}\n")
+                    buffer.append(f"{q_id} {pos_doc_id} {neg_doc_id} {similarity:.4f}\n")
+                    if len(buffer) >= 10000:
+                        fp.write("".join(buffer))
+                        buffer = []
+        if len(buffer) > 0:
+            fp.write("".join(buffer))
     
 
 

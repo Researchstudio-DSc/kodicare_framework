@@ -33,7 +33,6 @@ def main(args):
     n_docs = args.n_docs
     document_file = args.document_file
     formatted_document_file = args.formatted_document_file
-    truncate = args.truncate
 
     with open(document_file, "r") as fp, open(formatted_document_file, "w") as out_fp:
         for doc_line in tqdm(fp, total=n_docs):
@@ -51,8 +50,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--document_file', help='TSV file with document data')
     parser.add_argument('--formatted_document_file', help='TSV file with formatted document data')
-    parser.add_argument('-t', '--truncate',
-                    action='store_true')
     parser.add_argument('--n_docs', default=3213835, type=int, help='Number of documents')
 
     args = parser.parse_args()
