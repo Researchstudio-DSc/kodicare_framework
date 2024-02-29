@@ -93,7 +93,7 @@ def create_triplets(cfg, triplet_slice, documents, queries, upper_bound, lower_b
 
     random.seed(random_seed)
 
-    print("Load Hard Negatives")
+    print("Loading Hard Negatives")
     triplets_hard_negatives = {}
     with open(triplet_id_file, 'r') as fp:
         for line in fp:
@@ -107,7 +107,8 @@ def create_triplets(cfg, triplet_slice, documents, queries, upper_bound, lower_b
 
     print(f"Creating Triplets")
     triplets = []
-    for q_id, pos_doc_id in triplets_hard_negatives.keys():
+    for q_id, pos_doc_id in tqdm(triplets_hard_negatives.keys()):
+        relevant_doc_ids = relevance_judgements[q_id]
         hard_negative_ids = triplets_hard_negatives[(q_id, pos_doc_id)]
         neg_doc_ids = random.sample(doc_ids, k=query_total_negatives)
         if query_hard_negatives > len(hard_negative_ids):
@@ -123,10 +124,11 @@ def create_triplets(cfg, triplet_slice, documents, queries, upper_bound, lower_b
                 continue
             triplets.append((q_id, pos_doc_id, neg_doc_id))
 
-
+    print(f"Shuffling Triplets")
     # shuffle training data
-    random.shuffle(triplets)
+    #random.shuffle(triplets)
 
+    print(f"Writing Triplets")
     # now with buffering
     with open(os.path.join(triplet_folder, triplet_slice_name), 'w') as fp_out:
         buffer = []

@@ -6,6 +6,8 @@ document_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/msmarco-docs.tsv
 qrels_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-qrels.tsv
 queries_file: /data/tfink/kodicare/trec-2019-dl/doc_ret/msmarco-doctrain-queries.tsv
 kd_experiment_name: bert
+total_negatives: 20
+hard_negatives: 10
 
 kd_model:
   #model_type: tfidf # bert-embedding, topics
