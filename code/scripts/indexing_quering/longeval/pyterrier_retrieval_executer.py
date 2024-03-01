@@ -3,15 +3,14 @@ python script to generate runs for retrieval models and evaluate the models (the
 """
 
 import hydra
-
 from code.indexing.pyterrier_indexer import *
 
 
 @hydra.main(version_base=None, config_path="../../../../conf", config_name=None)
 def main(cfg):
-    queries_path = cfg.test_collection.queries_path
-    qrels_path = cfg.test_collection.qrels_path
-    index_path = cfg.index.index_path
+    queries_path = join(cfg.config.root_dir, cfg.test_collection.queries_path)
+    qrels_path = join(cfg.config.root_dir, cfg.test_collection.qrels_path)
+    index_path = join(cfg.config.root_dir, cfg.index.index_path)
 
     evaluation_perquery_output_path = cfg.evaluation.evaluation_perquery_output_path
     evaluation_mean_output_path = cfg.evaluation.evaluation_mean_output_path
@@ -24,6 +23,7 @@ def main(cfg):
         model_info = retrieval_model[index]
         controls = {} if 'controls' not in model_info else model_info['controls']
         run_df = retrieve_run(index_path, queries_df, model_info['model'], controls=controls, num_results=100)
+        run_df.to_csv(join(join(cfg.config.root_dir, cfg.test_collection.runs_output_dir), 'run_' + model_info['run_name'] + '.csv'))
         runs[model_info['run_name']] = run_df
 
     evaluation_mean_df = evaluate_run_set(runs, qrels_df, cfg.evaluation_metrics, perquery=False)

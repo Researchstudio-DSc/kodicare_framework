@@ -4,12 +4,13 @@ config:
 
 test_collection:
   language: en
-  documents_dir: ??? # json directory of documents to index
-  queries_path: ??? # trec full path of queries
-  qrels_path: ??? # txt full path of qrels
+  documents_dir: qwant/2022/merged_collection/French/Documents/json/ # json directory of documents to index
+  queries_path: qwant/2022/merged_collection/queries_merged.trec # trec full path of queries
+  qrels_path: qwant/2022/merged_collection/qrels_merged.txt # txt full path of qrels
+  runs_output_dir: qwant/2022/merged_collection/runs
 
 index:
-  index_path: ??? # directory to store the index in
+  index_path: qwant/2022/merged_collection/French/pyterrier_index # directory to store the index in
 
 dtc: # dynamic test collection information
   evaluation_splits_dir: qwant/2022/evee #the output directory of retrieval results
@@ -41,9 +42,8 @@ dtc: # dynamic test collection information
     rd_relative_mean_path: rd_relative_mean_path #dir contain the relative rd of the mean
 
 evaluation:
-  evaluation_perquery_output_path: ??? # tsv file path for evaluation for each query
-  evaluation_mean_output_path: ??? #tsv path of evaluation for the mean of the queries
-
+  evaluation_perquery_output_path: qwant/2022/merged_collection/French/evaluation_perquery.csv # tsv file path for evaluation for each query
+  evaluation_mean_output_path: qwant/2022/merged_collection/French/evaluation_mean.csv #tsv path of evaluation for the mean of the queries
 
 retrieval_models:
   - 0:
