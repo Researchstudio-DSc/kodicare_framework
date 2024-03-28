@@ -14,14 +14,15 @@ index:
 
 dtc: # dynamic test collection information
   evaluation_splits_dir: qwant/2022/evee #the output directory of retrieval results
-  docno_date_path: longeval_docno_sorted.csv
-  n_evee: 40 # number of EE to create
+  docno_date_path: longeval_docno_sorted_filtered.csv
+  n_evee: 41 # number of EE to create
   evee_overlap: 10 # the percentage of overlap between EEs
-  evee_info_path: evee_docnos_40_10.pkl
+  evee_info_path: evee_docnos_16_41_10.pkl
   collectors_dirs:
     - qwant/2022/longeval-train-v2/publish/French/Documents/Json
     - qwant/2022/longeval-test-collection/test-collection/A-Short-July/French/Documents/Json
     - qwant/2022/longeval-test-collection/test-collection/B-Long-September/French/Documents/Json
+  merged_collectors_dir: merged_collectors
   doc_ids__time__infos:
     - qwant/2022/evee/urls-with-times-06-train.txt
     - qwant/2022/evee/urls-with-times-07.txt
