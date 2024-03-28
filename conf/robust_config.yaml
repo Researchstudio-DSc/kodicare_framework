@@ -2,11 +2,18 @@ config:
   root_dir: ??? # the root directory of the whole data set base
   lang: 'en'
 
+test_collection:
+  documents_dir: ir_datasets/disks45/ # path to disk45
+  runs_output_dir: robust/runs
+
+index:
+  index_path: robust/pyterrier_index # directory to store the index in
+
 dtc: # dynamic test collection information
   evaluation_splits_dir: robust/dtc #the output directory of retrieval results
   evaluation_splits_path: ??? # hdf5 file of samples and evaluation data.
   docs_full_info_path: qrels_merge-robust.csv
-  docno_date_path: Robust_docno_date.csv
+  docno_date_path: Robust_docno_date_ordered.csv
   out_in_fields_map: { "docno": 'docno', "date": 'date1' }
   dtc_evolving_cont_ids_path: Robust_dtc_evolving_cont_docnos.pkl
   dtc_evolving_ids_path: Robust_dtc_evolving_docnos.pkl
@@ -15,9 +22,9 @@ dtc: # dynamic test collection information
   dtc_evolving_content_dir: Robust_dtc_evolving_all
   dtc_random_content_dir: Robust_dtc_random
   full_contents_path: qrels_merge-robust.csv
-  n_evee: 40 # number of EE to create
+  n_evee: 41 # number of EE to create
   evee_overlap: 10 # the percentage of overlap between EEs
-  evee_info_path: evee_docnos_40_10.pkl
+  evee_info_path: evee_docnos_16_41_10.pkl
   start_step: 2
   end_step: 10
   generate_vocab_stats: True
@@ -34,6 +41,9 @@ dtc: # dynamic test collection information
     rd_relative_perquery_path: rd_relative_perquery_path #dir contain the relative rd per query
     rd_relative_mean_path: rd_relative_mean_path #dir contain the relative rd of the mean
 
+evaluation:
+  evaluation_perquery_output_path: robust/evaluation_perquery.csv # tsv file path for evaluation for each query
+  evaluation_mean_output_path: robust/evaluation_mean.csv #tsv path of evaluation for the mean of the queries
 
 retrieval_models:
   - 0:

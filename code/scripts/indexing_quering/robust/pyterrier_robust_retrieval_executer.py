@@ -11,8 +11,9 @@ import pandas as pd
 @hydra.main(version_base=None, config_path="../../../../conf", config_name=None)
 def main(cfg):
     runs_dir = join(cfg.config.root_dir, cfg.test_collection.runs_output_dir)
+    print(runs_dir)
     dtc_ids = read_pickle(join(cfg.config.root_dir, join(cfg.dtc.evaluation_splits_dir, cfg.dtc.evee_info_path)))
-
+    print(join(cfg.dtc.evaluation_splits_dir, cfg.dtc.evee_info_path))
     evaluation_perquery_output_path = join(cfg.config.root_dir, join(cfg.dtc.evaluation_splits_dir,
                                                                      cfg.dtc.evaluation.evaluation_perquery_output_path))
     evaluation_mean_output_path = join(cfg.config.root_dir, join(cfg.dtc.evaluation_splits_dir,
