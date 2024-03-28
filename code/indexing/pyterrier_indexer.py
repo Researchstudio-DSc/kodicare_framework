@@ -74,9 +74,10 @@ def iter_dir_longeval(docs_path):
             yield doc
 
 
-def create_index_json_longeval(index_path, docs_path):
+def create_index_json_longeval(index_path, docs_path, lang='en'):
     """
     create an index for the longeval json dataset
+    :param lang: language of the test collection en or fr
     :param index_path: the path to store the index
     :param docs_path: the path of the json document collection
     :return: reference to the index
@@ -84,6 +85,9 @@ def create_index_json_longeval(index_path, docs_path):
     if not path_exits(join(index_path, 'data.properties')):
         print("Create nex index ..")
         iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096})
+        if lang == 'fr':
+            iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096},
+                                              stemmer='FrenchSnowballStemmer', stopwords=None, tokeniser="UTFTokeniser")
         index_ref = iter_indexer.index(iter_dir_longeval(docs_path))
     else:
         print("Index already exists, an existing reference is returned ...")
@@ -98,7 +102,7 @@ def iter_dir(docs):
         yield doc
 
 
-def create_index_longeval_evee(index_path, ee_docs_ids, docno_text_loc_map):
+def create_index_longeval_evee(index_path, ee_docs_ids, docno_text_loc_map, lang='en'):
     """
     create an index for an EE from simulated evee for the longeval
     :param index_path: the path to store the index
@@ -108,8 +112,10 @@ def create_index_longeval_evee(index_path, ee_docs_ids, docno_text_loc_map):
     """
     if not path_exits(join(index_path, 'data.properties')):
         print("Create nex index ..")
-        iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096},
-                                          stemmer='FrenchSnowballStemmer', stopwords=None, tokeniser="UTFTokeniser")
+        iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096})
+        if lang == 'fr':
+            iter_indexer = pt.IterDictIndexer(index_path, meta={'docno': 20, 'text': 4096},
+                                              stemmer='FrenchSnowballStemmer', stopwords=None, tokeniser="UTFTokeniser")
         index_ref = iter_indexer.index(iter_evee_docs_info(ee_docs_ids, docno_text_loc_map))
     else:
         print("Index already exists, an existing reference is returned ...")
