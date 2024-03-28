@@ -9,13 +9,14 @@ import hydra
 
 @hydra.main(version_base=None, config_path="../../../../conf", config_name=None)
 def main(cfg):
-    documents_dir = join(cfg.config.root_dir, cfg.test_collection.documents_dir)
+    documents_dir = join(cfg.config.root_dir,
+                         join(cfg.dtc.evaluation_splits_dir, cfg.dtc.merged_collectors_dir))
     index_path = join(cfg.config.root_dir, cfg.index.index_path)
 
     if not path_exits(index_path):
         mkdir(index_path)
 
-    create_index_json_longeval(index_path, documents_dir)
+    create_index_json_longeval(index_path, documents_dir, lang=cfg.config.lang)
 
 
 if __name__ == '__main__':

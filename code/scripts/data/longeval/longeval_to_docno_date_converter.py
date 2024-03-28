@@ -25,7 +25,7 @@ def create_info_maps(input_dir, files):
     return sorted_by_created_at
 
 
-@hydra.main(version_base=None, config_path="../../../conf", config_name=None)
+@hydra.main(version_base=None, config_path="../../../../conf", config_name=None)
 def main(cfg):
     sorted_by_created_at = create_info_maps(cfg.config.root_dir, cfg.dtc.doc_ids__time__infos)
     df = pd.DataFrame(data=sorted_by_created_at)
