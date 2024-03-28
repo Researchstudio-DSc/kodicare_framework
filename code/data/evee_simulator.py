@@ -29,9 +29,9 @@ class EvEESimulator:
     def simulate_evee(self):
         docnos = get_docno_list(self.docs_info_path)
         n_docs = len(docnos)
-        n_overlap = int((n_docs / self.n_evee) * (self.overlap_percentage / 100))
+        n_docs_per_collection = int((n_docs * 0.16))
+        n_overlap = int(n_docs_per_collection * (1 - self.overlap_percentage / 100))
         print("overlap number", n_overlap)
-        n_docs_per_collection = int((n_docs / self.n_evee)) + n_overlap
         evee = []
         start_index = 0
         end_index = n_docs_per_collection
